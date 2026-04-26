@@ -1,0 +1,94 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    font-feature-settings: "ss01" on, "cv11" on;
+  }
+  body {
+    background: #ffffff;
+    color: #000000;
+    font-family: Inter, system-ui, sans-serif;
+    font-size: 16px;
+    letter-spacing: 0.16px;
+  }
+  ::selection {
+    background: rgba(245, 242, 239, 0.9);
+    color: #000;
+  }
+}
+
+@layer components {
+  /* Pill button — primary black */
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 rounded-full bg-ink text-white px-4 py-2.5 text-[15px] font-medium leading-none transition-opacity hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed;
+  }
+
+  /* Pill button — white with shadow border */
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 rounded-full bg-white text-ink px-4 py-2.5 text-[15px] font-medium leading-none shadow-elevation transition-shadow hover:shadow-warm disabled:opacity-40 disabled:cursor-not-allowed;
+  }
+
+  /* Featured warm-stone CTA */
+  .btn-warm {
+    @apply inline-flex items-center justify-center gap-2 rounded-warm text-ink text-[15px] font-medium leading-none shadow-warm transition-all hover:shadow-elevation disabled:opacity-40 disabled:cursor-not-allowed;
+    background: rgba(245, 242, 239, 0.9);
+    padding: 12px 20px 12px 14px;
+  }
+
+  /* Card */
+  .card {
+    @apply bg-white rounded-card shadow-outline border border-transparent;
+  }
+  .card-section {
+    @apply bg-white rounded-section shadow-outline;
+  }
+
+  /* Display heading — Inter at light weight, mimicking Waldenburg 300 */
+  .h-display {
+    font-weight: 300;
+    line-height: 1.08;
+    letter-spacing: -0.96px;
+  }
+  .h-section {
+    font-weight: 300;
+    line-height: 1.17;
+    letter-spacing: -0.4px;
+  }
+  .h-card {
+    font-weight: 300;
+    line-height: 1.13;
+  }
+
+  /* Text utilities */
+  .text-body {
+    font-size: 18px;
+    line-height: 1.6;
+    letter-spacing: 0.18px;
+    color: #4e4e4e;
+  }
+  .text-caption {
+    font-size: 14px;
+    line-height: 1.43;
+    letter-spacing: 0.14px;
+    color: #777169;
+  }
+  .text-uppercase-cta {
+    font-size: 14px;
+    font-weight: 700;
+    letter-spacing: 0.7px;
+    text-transform: uppercase;
+    line-height: 1.1;
+  }
+}
+
+/* Subtle pulse for the active step indicator */
+@keyframes step-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.45; }
+}
+.step-running .step-dot {
+  animation: step-pulse 1.4s ease-in-out infinite;
+}

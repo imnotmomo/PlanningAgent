@@ -1,0 +1,968 @@
+{
+  "fine_tuned": {
+    "per_example": [
+      {
+        "json_valid": true,
+        "schema_complete": true,
+        "day_count_correct": true,
+        "per_day_complete": true,
+        "no_extra_places_in_themes": true,
+        "extra_places_in_themes": [],
+        "latency_s": 9.33867621421814,
+        "generated": "{\"trip_summary\": \"A 2-day Innsbruck itinerary focused on nature, photography, and easy sightseeing.\", \"daily_itinerary\": [{\"day\": 1, \"theme\": \"Golden Roof + Old Town\", \"morning\": \"Start with Golden Roof and keep the pace comfortable.\", \"afternoon\": \"Continue with Old Town and have lunch nearby.\", \"evening\": \"Have dinner at a local restaurant and leave time for transportation.\", \"estimated_cost\": \"$50-$180 per person\", \"transportation_note\": \"Use the most practical local transportation and include a buffer time.\", \"feasibility_note\": \"The day is realistic because the main stops are limited and grouped by area.\"}, {\"day\": 2, \"theme\": \"Nordkette + Ambras Castle\", \"morning\": \"Start with Nordkette and keep the pace comfortable.\", \"afternoon\": \"Continue with Ambras Castle and have lunch nearby.\", \"evening\": \"Have dinner at a local restaurant and leave time for transportation.\", \"estimated_cost\": \"$50-$180 per person\", \"transportation_note\": \"Use the most practical local transportation and include a buffer time.\", \"feasibility_note\": \"The day is realistic because the main stops are limited and grouped by area.\"}], \"budget_summary\": \"This plan is designed for a medium budget excluding flights and major lodging changes.\", \"backup_options\": [\"Indoor museum option\", \"Flexible neighborhood walk\"], \"travel_tips\": [\"Check current opening hours before visiting.\", \"Leave buffer time for transportation.\", \"Book popular activities in advance when needed.\"]}",
+        "gold": "{\"trip_summary\": \"A 2-day Innsbruck itinerary based only on the selected places and user constraints.\", \"daily_itinerary\": [{\"day\": 1, \"theme\": \"Golden Roof and Old Town\", \"morning\": \"Start with Golden Roof and keep the pace comfortable.\", \"afternoon\": \"Continue with Old Town.\", \"evening\": \"Have dinner nearby and avoid adding extra distant stops.\", \"estimated_cost\": \"$50-$180 per person\", \"transportation_note\": \"Use practical local transit, taxi, walking, or car depending on the destination.\", \"feasibility_note\": \"The plan is realistic because the day is limited to nearby or related stops.\"}, {\"day\": 2, \"theme\": \"Nordkette and Ambras Castle\", \"morning\": \"Start with Nordkette and keep the pace comfortable.\", \"afternoon\": \"Continue with Ambras Castle.\", \"evening\": \"Have dinner nearby and avoid adding extra distant stops.\", \"estimated_cost\": \"$50-$180 per person\", \"transportation_note\": \"Use practical local transit, taxi, walking, or car depending on the destination.\", \"feasibility_note\": \"The plan is realistic because the day is limited to nearby or related stops.\"}], \"budget_summary\": \"The plan keeps costs aligned with the stated budget level, excluding flights and major lodging changes.\", \"backup_options\": [\"Cafe or indoor museum option\", \"Flexible neighborhood walk\"], \"travel_tips\": [\"Check opening hours before visiting.\", \"Leave time buffers for transit.\", \"Keep weather-dependent activities flexible.\"]}",
+        "input": {
+          "destination": "Innsbruck",
+          "trip_length_days": 2,
+          "travelers": "family",
+          "budget_level": "medium",
+          "interests": [
+            "nature",
+            "photography",
+            "easy sightseeing"
+          ],
+          "pace": "packed",
+          "constraints": [
+            "keep the schedule realistic",
+            "do not add places outside the provided list"
+          ],
+          "selected_places": [
+            "Golden Roof",
+            "Nordkette",
+            "Old Town",
+            "Ambras Castle"
+          ],
+          "route_groups": {
+            "Day 1": [
+              "Golden Roof",
+              "Old Town"
+            ],
+            "Day 2": [
+              "Nordkette",
+              "Ambras Castle"
+            ]
+          }
+        }
+      },
+      {
+        "json_valid": true,
+        "schema_complete": true,
+        "day_count_correct": true,
+        "per_day_complete": true,
+        "no_extra_places_in_themes": true,
+        "extra_places_in_themes": [],
+        "latency_s": 11.327670574188232,
+        "generated": "{\"trip_summary\": \"A 3-day Chicago itinerary focused on beaches, relaxation, food, scenery.\", \"daily_itinerary\": [{\"day\": 1, \"theme\": \"Millennium Park + Navy Pier\", \"morning\": \"Start with Millennium Park and keep the pace comfortable.\", \"afternoon\": \"Continue with Navy Pier and have lunch nearby.\", \"evening\": \"Have dinner and leave room for walking or transportation.\", \"estimated_cost\": \"$50-$200 per person\", \"transportation_note\": \"Use the most practical local transit, taxi, or walking.\", \"feasibility_note\": \"The day is realistic because the main stops are limited and grouped by area.\"}, {\"day\": 2, \"theme\": \"Art Institute of Chicago + Willis Tower\", \"morning\": \"Start with Art Institute of Chicago and keep the pace comfortable.\", \"afternoon\": \"Continue with Willis Tower and have lunch nearby.\", \"evening\": \"Have dinner and leave room for walking or transportation.\", \"estimated_cost\": \"$50-$200 per person\", \"transportation_note\": \"Use the most practical local transit, taxi, or walking.\", \"feasibility_note\": \"The day is realistic because the main stops are limited and grouped by area.\"}, {\"day\": 3, \"theme\": \"Chicago Riverwalk + Magnificent Mile\", \"morning\": \"Start with Chicago Riverwalk and keep the pace comfortable.\", \"afternoon\": \"Continue with Magnificent Mile and have lunch nearby.\", \"evening\": \"Have dinner and leave room for walking or transportation.\", \"estimated_cost\": \"$50-$200 per person\", \"transportation_note\": \"Use the most practical local transit, taxi, or walking.\", \"feasibility_note\": \"The day is realistic because the main stops are limited and grouped by area.\"}], \"budget_summary\": \"This plan is designed for a high budget trip because it includes multiple stops and flexible transportation.\", \"backup_options\": [\"Indoor museum or cafe option\", \"Flexible neighborhood walk\"], \"travel_tips\": [\"Check opening hours before visiting.\", \"Leave time buffers for transportation.\", \"Book popular activities in advance when needed.\"]}",
+        "gold": "{\"trip_summary\": \"A 3-day Chicago itinerary focused on beaches, relaxation, food.\", \"daily_itinerary\": [{\"day\": 1, \"theme\": \"Millennium Park + Navy Pier\", \"morning\": \"Start with Millennium Park at a comfortable pace.\", \"afternoon\": \"Continue with Navy Pier.\", \"evening\": \"Have dinner nearby and keep the evening flexible.\", \"estimated_cost\": \"$50-$180 per person\", \"transportation_note\": \"Use the most practical local transportation and leave time buffers.\", \"feasibility_note\": \"This day is realistic because the main stops are limited and grouped by area.\"}, {\"day\": 2, \"theme\": \"Art Institute of Chicago + Willis Tower\", \"morning\": \"Start with Art Institute of Chicago at a comfortable pace.\", \"afternoon\": \"Continue with Willis Tower.\", \"evening\": \"Have dinner nearby and keep the evening flexible.\", \"estimated_cost\": \"$50-$180 per person\", \"transportation_note\": \"Use the most practical local transportation and leave time buffers.\", \"feasibility_note\": \"This day is realistic because the main stops are limited and grouped by area.\"}, {\"day\": 3, \"theme\": \"Chicago Riverwalk + Magnificent Mile\", \"morning\": \"Start with Chicago Riverwalk at a comfortable pace.\", \"afternoon\": \"Continue with Magnificent Mile.\", \"evening\": \"Have dinner nearby and keep the evening flexible.\", \"estimated_cost\": \"$50-$180 per person\", \"transportation_note\": \"Use the most practical local transportation and leave time buffers.\", \"feasibility_note\": \"This day is realistic because the main stops are limited and grouped by area.\"}], \"budget_summary\": \"This itinerary is designed for a high budget excluding flights and major lodging variations.\", \"backup_options\": [\"Indoor museum or cafe option\", \"Flexible neighborhood walk\"], \"travel_tips\": [\"Check current opening hours before visiting.\", \"Leave buffer time for transportation and weather.\", \"Book popular activities in advance when needed.\"]}",
+        "input": {
+          "destination": "Chicago",
+          "trip_length_days": 3,
+          "travelers": "couple",
+          "budget_level": "high",
+          "interests": [
+            "beaches",
+            "relaxation",
+            "food",
+            "scenery"
+          ],
+          "pace": "packed",
+          "constraints": [
+            "follow user constraints",
+            "keep the schedule realistic"
+          ],
+          "selected_places": [
+            "Millennium Park",
+            "Art Institute of Chicago",
+            "Chicago Riverwalk",
+            "Navy Pier",
+            "Willis Tower",
+            "Magnificent Mile"
+          ],
+          "route_groups": {
+            "Day 1": [
+              "Millennium Park",
+              "Navy Pier"
+            ],
+            "Day 2": [
+              "Art Institute of Chicago",
+              "Willis Tower"
+            ],
+            "Day 3": [
+              "Chicago Riverwalk",
+              "Magnificent Mile"
+            ]
+          }
+        }
+      },
+      {
+        "json_valid": true,
+        "schema_complete": true,
+        "day_count_correct": true,
+        "per_day_complete": true,
+        "no_extra_places_in_themes": true,
+        "extra_places_in_themes": [],
+        "latency_s": 11.841624736785889,
+        "generated": "{\"trip_summary\": \"A 3-day Santiago itinerary focused on beaches, relaxation, food, scenery.\", \"daily_itinerary\": [{\"day\": 1, \"theme\": \"Cerro San Crist\u00f3bal + Lastarria\", \"morning\": \"Start with Cerro San Crist\u00f3bal and keep the pace comfortable.\", \"afternoon\": \"Continue with Lastarria and have lunch nearby.\", \"evening\": \"Have dinner and leave some free time for flexibility.\", \"estimated_cost\": \"$50-$180 per person\", \"transportation_note\": \"Use the most practical local transportation and include walking distances.\", \"feasibility_note\": \"This day is realistic because the main stops are limited and grouped by area.\"}, {\"day\": 2, \"theme\": \"Plaza de Armas + Maipo Valley\", \"morning\": \"Start with Plaza de Armas and keep the pace comfortable.\", \"afternoon\": \"Continue with Maipo Valley and have lunch nearby.\", \"evening\": \"Have dinner and leave some free time for flexibility.\", \"estimated_cost\": \"$50-$180 per person\", \"transportation_note\": \"Use the most practical local transportation and include walking distances.\", \"feasibility_note\": \"This day is realistic because the main stops are limited and grouped by area.\"}, {\"day\": 3, \"theme\": \"Museo Chileno de Arte Precolombino\", \"morning\": \"Start with Museo Chileno de Arte Precolombino and keep the pace comfortable.\", \"afternoon\": \"Continue with the neighborhood and have lunch nearby.\", \"evening\": \"Have dinner and leave some free time for flexibility.\", \"estimated_cost\": \"$50-$180 per person\", \"transportation_note\": \"Use the most practical local transportation and include walking distances.\", \"feasibility_note\": \"This day is realistic because the main stops are limited and grouped by area.\"}], \"budget_summary\": \"This itinerary is designed for a low budget excluding flights and major lodging variations.\", \"backup_options\": [\"Indoor museum or cafe option\", \"Flexible neighborhood walk\"], \"travel_tips\": [\"Check opening hours before visiting.\", \"Leave time buffers for transportation.\", \"Book popular activities in advance when needed.\"]}",
+        "gold": "{\"trip_summary\": \"A 3-day Santiago itinerary focused on beaches, relaxation, food.\", \"daily_itinerary\": [{\"day\": 1, \"theme\": \"Cerro San Crist\u00f3bal + Lastarria\", \"morning\": \"Start with Cerro San Crist\u00f3bal at a comfortable pace.\", \"afternoon\": \"Continue with Lastarria.\", \"evening\": \"Have dinner nearby and keep the evening flexible.\", \"estimated_cost\": \"$50-$180 per person\", \"transportation_note\": \"Use the most practical local transportation and leave time buffers.\", \"feasibility_note\": \"This day is realistic because the main stops are limited and grouped by area.\"}, {\"day\": 2, \"theme\": \"Plaza de Armas + Maipo Valley\", \"morning\": \"Start with Plaza de Armas at a comfortable pace.\", \"afternoon\": \"Continue with Maipo Valley.\", \"evening\": \"Have dinner nearby and keep the evening flexible.\", \"estimated_cost\": \"$50-$180 per person\", \"transportation_note\": \"Use the most practical local transportation and leave time buffers.\", \"feasibility_note\": \"This day is realistic because the main stops are limited and grouped by area.\"}, {\"day\": 3, \"theme\": \"Museo Chileno de Arte Precolombino\", \"morning\": \"Start with Museo Chileno de Arte Precolombino at a comfortable pace.\", \"afternoon\": \"Continue with rest time, food, or nearby exploration.\", \"evening\": \"Have dinner nearby and keep the evening flexible.\", \"estimated_cost\": \"$50-$180 per person\", \"transportation_note\": \"Use the most practical local transportation and leave time buffers.\", \"feasibility_note\": \"This day is realistic because the main stops are limited and grouped by area.\"}], \"budget_summary\": \"This itinerary is designed for a low budget excluding flights and major lodging variations.\", \"backup_options\": [\"Indoor museum or cafe option\", \"Flexible neighborhood walk\"], \"travel_tips\": [\"Check current opening hours before visiting.\", \"Leave buffer time for transportation and weather.\", \"Book popular activities in advance when needed.\"]}",
+        "input": {
+          "destination": "Santiago",
+          "trip_length_days": 3,
+          "travelers": "couple",
+          "budget_level": "low",
+          "interests": [
+            "beaches",
+            "relaxation",
+            "food",
+            "scenery"
+          ],
+          "pace": "relaxed",
+          "constraints": [
+            "follow user constraints",
+            "keep the schedule realistic"
+          ],
+          "selected_places": [
+            "Cerro San Crist\u00f3bal",
+            "Plaza de Armas",
+            "Museo Chileno de Arte Precolombino",
+            "Lastarria",
+            "Maipo Valley"
+          ],
+          "route_groups": {
+            "Day 1": [
+              "Cerro San Crist\u00f3bal",
+              "Lastarria"
+            ],
+            "Day 2": [
+              "Plaza de Armas",
+              "Maipo Valley"
+            ],
+            "Day 3": [
+              "Museo Chileno de Arte Precolombino"
+            ]
+          }
+        }
+      },
+      {
+        "json_valid": true,
+        "schema_complete": true,
+        "day_count_correct": true,
+        "per_day_complete": true,
+        "no_extra_places_in_themes": true,
+        "extra_places_in_themes": [],
+        "latency_s": 16.06659984588623,
+        "generated": "{\"trip_summary\": \"A 5-day Patagonia Chile itinerary focused on museums, markets, architecture, cafes.\", \"daily_itinerary\": [{\"day\": 1, \"theme\": \"Torres del Paine\", \"morning\": \"Start with a local breakfast.\", \"afternoon\": \"Explore the main area at a comfortable pace.\", \"evening\": \"Have dinner nearby and keep the evening flexible.\", \"estimated_cost\": \"$50-$200 per person\", \"transportation_note\": \"Use the most practical local transportation option.\", \"feasibility_note\": \"The day is realistic because the selected area can be comfortably visited in one day.\"}, {\"day\": 2, \"theme\": \"Grey Glacier\", \"morning\": \"Start with a local breakfast.\", \"afternoon\": \"Explore the main area at a comfortable pace.\", \"evening\": \"Have dinner nearby and keep the evening flexible.\", \"estimated_cost\": \"$50-$200 per person\", \"transportation_note\": \"Use the most practical local transportation option.\", \"feasibility_note\": \"The day is realistic because the selected area can be comfortably visited in one day.\"}, {\"day\": 3, \"theme\": \"Puerto Natales\", \"morning\": \"Start with a local breakfast.\", \"afternoon\": \"Explore the main area at a comfortable pace.\", \"evening\": \"Have dinner nearby and keep the evening flexible.\", \"estimated_cost\": \"$50-$200 per person\", \"transportation_note\": \"Use the most practical local transportation option.\", \"feasibility_note\": \"The day is realistic because the selected area can be comfortably visited in one day.\"}, {\"day\": 4, \"theme\": \"Mirador Base Torres\", \"morning\": \"Start with a local breakfast.\", \"afternoon\": \"Explore the main area at a comfortable pace.\", \"evening\": \"Have dinner nearby and keep the evening flexible.\", \"estimated_cost\": \"$50-$200 per person\", \"transportation_note\": \"Use the most practical local transportation option.\", \"feasibility_note\": \"The day is realistic because the selected area can be comfortably visited in one day.\"}, {\"day\": 5, \"theme\": \"Lago Peho\u00e9\", \"morning\": \"Start with a local breakfast.\", \"afternoon\": \"Explore the main area at a comfortable pace.\", \"evening\": \"Have dinner nearby and keep the evening flexible.\", \"estimated_cost\": \"$50-$200 per person\", \"transportation_note\": \"Use the most practical local transportation option.\", \"feasibility_note\": \"The day is realistic because the selected area can be comfortably visited in one day.\"}], \"budget_summary\": \"The final trip cost will vary based on individual preferences and chosen accommodations.\", \"backup_options\": [\"Indoor museum or cafe option\", \"Flexible neighborhood walk\"], \"travel_tips\": [\"Check current opening hours before visiting.\", \"Leave time buffers for transportation.\", \"Keep weather-appropriate clothing.\", \"Book popular activities in advance when needed.\"]}",
+        "gold": "{\"trip_summary\": \"A 5-day Patagonia Chile itinerary focused on museums, markets, architecture.\", \"daily_itinerary\": [{\"day\": 1, \"theme\": \"Torres del Paine\", \"morning\": \"Start with Torres del Paine at a comfortable pace.\", \"afternoon\": \"Continue with rest time, food, or nearby exploration.\", \"evening\": \"Have dinner nearby and keep the evening flexible.\", \"estimated_cost\": \"$50-$180 per person\", \"transportation_note\": \"Use the most practical local transportation and leave time buffers.\", \"feasibility_note\": \"This day is realistic because the main stops are limited and grouped by area.\"}, {\"day\": 2, \"theme\": \"Grey Glacier\", \"morning\": \"Start with Grey Glacier at a comfortable pace.\", \"afternoon\": \"Continue with rest time, food, or nearby exploration.\", \"evening\": \"Have dinner nearby and keep the evening flexible.\", \"estimated_cost\": \"$50-$180 per person\", \"transportation_note\": \"Use the most practical local transportation and leave time buffers.\", \"feasibility_note\": \"This day is realistic because the main stops are limited and grouped by area.\"}, {\"day\": 3, \"theme\": \"Puerto Natales\", \"morning\": \"Start with Puerto Natales at a comfortable pace.\", \"afternoon\": \"Continue with rest time, food, or nearby exploration.\", \"evening\": \"Have dinner nearby and keep the evening flexible.\", \"estimated_cost\": \"$50-$180 per person\", \"transportation_note\": \"Use the most practical local transportation and leave time buffers.\", \"feasibility_note\": \"This day is realistic because the main stops are limited and grouped by area.\"}, {\"day\": 4, \"theme\": \"Mirador Base Torres\", \"morning\": \"Start with Mirador Base Torres at a comfortable pace.\", \"afternoon\": \"Continue with rest time, food, or nearby exploration.\", \"evening\": \"Have dinner nearby and keep the evening flexible.\", \"estimated_cost\": \"$50-$180 per person\", \"transportation_note\": \"Use the most practical local transportation and leave time buffers.\", \"feasibility_note\": \"This day is realistic because the main stops are limited and grouped by area.\"}, {\"day\": 5, \"theme\": \"Lago Peho\u00e9\", \"morning\": \"Start with Lago Peho\u00e9 at a comfortable pace.\", \"afternoon\": \"Continue with rest time, food, or nearby exploration.\", \"evening\": \"Have dinner nearby and keep the evening flexible.\", \"estimated_cost\": \"$50-$180 per person\", \"transportation_note\": \"Use the most practical local transportation and leave time buffers.\", \"feasibility_note\": \"This day is realistic because the main stops are limited and grouped by area.\"}], \"budget_summary\": \"This itinerary is designed for a high budget excluding flights and major lodging variations.\", \"backup_options\": [\"Indoor museum or cafe option\", \"Flexible neighborhood walk\"], \"travel_tips\": [\"Check current opening hours before visiting.\", \"Leave buffer time for transportation and weather.\", \"Book popular activities in advance when needed.\"]}",
+        "input": {
+          "destination": "Patagonia Chile",
+          "trip_length_days": 5,
+          "travelers": "solo traveler",
+          "budget_level": "high",
+          "interests": [
+            "museums",
+            "markets",
+            "architecture",
+            "cafes"
+          ],
+          "pace": "packed",
+          "constraints": [
+            "follow user constraints",
+            "keep the schedule realistic"
+          ],
+          "selected_places": [
+            "Torres del Paine",
+            "Grey Glacier",
+            "Puerto Natales",
+            "Mirador Base Torres",
+            "Lago Peho\u00e9"
+          ],
+          "route_groups": {
+            "Day 1": [
+              "Torres del Paine"
+            ],
+            "Day 2": [
+              "Grey Glacier"
+            ],
+            "Day 3": [
+              "Puerto Natales"
+            ],
+            "Day 4": [
+              "Mirador Base Torres"
+            ],
+            "Day 5": [
+              "Lago Peho\u00e9"
+            ]
+          }
+        }
+      },
+      {
+        "json_valid": true,
+        "schema_complete": true,
+        "day_count_correct": true,
+        "per_day_complete": true,
+        "no_extra_places_in_themes": true,
+        "extra_places_in_themes": [],
+        "latency_s": 8.734342575073242,
+        "generated": "{\"trip_summary\": \"A 2-day Tashkent itinerary focused on the selected places.\", \"daily_itinerary\": [{\"day\": 1, \"theme\": \"Chorsu Bazaar + Amir Timur Square\", \"morning\": \"Start with Chorsu Bazaar and keep the pace comfortable.\", \"afternoon\": \"Continue with Amir Timur Square and have lunch nearby.\", \"evening\": \"Have dinner at a local restaurant and leave some free time.\", \"estimated_cost\": \"$50-$180 per person\", \"transportation_note\": \"Use the most practical local transportation and include walking time.\", \"feasibility_note\": \"The day is realistic because the main stops can be covered in a day.\"}, {\"day\": 2, \"theme\": \"Khast Imam + Metro Stations\", \"morning\": \"Start with Khast Imam and keep the pace comfortable.\", \"afternoon\": \"Continue with Metro Stations and have lunch nearby.\", \"evening\": \"Have dinner at a local restaurant and leave some free time.\", \"estimated_cost\": \"$50-$180 per person\", \"transportation_note\": \"Use the most practical local transportation and include walking time.\", \"feasibility_note\": \"The day is realistic because the main stops can be covered in a day.\"}], \"budget_summary\": \"The plan is designed for a medium budget excluding flights and major lodging variations.\", \"backup_options\": [\"Indoor museum or cafe option\", \"Flexible neighborhood walk\"], \"travel_tips\": [\"Check current opening hours before visiting.\", \"Leave buffer time for transportation and weather.\", \"Book popular activities in advance when needed.\"]}",
+        "gold": "{\"trip_summary\": \"A 2-day Tashkent itinerary based only on the selected places and user constraints.\", \"daily_itinerary\": [{\"day\": 1, \"theme\": \"Chorsu Bazaar and Amir Timur Square\", \"morning\": \"Start with Chorsu Bazaar and keep the pace comfortable.\", \"afternoon\": \"Continue with Amir Timur Square.\", \"evening\": \"Have dinner nearby and avoid adding extra distant stops.\", \"estimated_cost\": \"$50-$180 per person\", \"transportation_note\": \"Use practical local transit, taxi, walking, or car depending on the destination.\", \"feasibility_note\": \"The plan is realistic because the day is limited to nearby or related stops.\"}, {\"day\": 2, \"theme\": \"Khast Imam and Metro Stations\", \"morning\": \"Start with Khast Imam and keep the pace comfortable.\", \"afternoon\": \"Continue with Metro Stations.\", \"evening\": \"Have dinner nearby and avoid adding extra distant stops.\", \"estimated_cost\": \"$50-$180 per person\", \"transportation_note\": \"Use practical local transit, taxi, walking, or car depending on the destination.\", \"feasibility_note\": \"The plan is realistic because the day is limited to nearby or related stops.\"}], \"budget_summary\": \"The plan keeps costs aligned with the stated budget level, excluding flights and major lodging changes.\", \"backup_options\": [\"Cafe or indoor museum option\", \"Flexible neighborhood walk\"], \"travel_tips\": [\"Check opening hours before visiting.\", \"Leave time buffers for transit.\", \"Keep weather-dependent activities flexible.\"]}",
+        "input": {
+          "destination": "Tashkent",
+          "trip_length_days": 2,
+          "travelers": "couple",
+          "budget_level": "medium",
+          "interests": [
+            "beaches",
+            "views",
+            "relaxation"
+          ],
+          "pace": "medium",
+          "constraints": [
+            "keep the schedule realistic",
+            "do not add places outside the provided list"
+          ],
+          "selected_places": [
+            "Chorsu Bazaar",
+            "Khast Imam",
+            "Amir Timur Square",
+            "Metro Stations"
+          ],
+          "route_groups": {
+            "Day 1": [
+              "Chorsu Bazaar",
+              "Amir Timur Square"
+            ],
+            "Day 2": [
+              "Khast Imam",
+              "Metro Stations"
+            ]
+          }
+        }
+      },
+      {
+        "json_valid": true,
+        "schema_complete": true,
+        "day_count_correct": true,
+        "per_day_complete": true,
+        "no_extra_places_in_themes": true,
+        "extra_places_in_themes": [],
+        "latency_s": 8.148458003997803,
+        "generated": "{\"trip_summary\": \"A 2-day Izmir itinerary focused on history, food, and walking.\", \"daily_itinerary\": [{\"day\": 1, \"theme\": \"Kemeralt\u0131 Bazaar + Alsancak\", \"morning\": \"Start with Kemeralt\u0131 Bazaar at a comfortable pace.\", \"afternoon\": \"Continue with Alsancak.\", \"evening\": \"Have dinner nearby and keep the evening flexible.\", \"estimated_cost\": \"$30-$150 per person\", \"transportation_note\": \"Use the most practical local transportation and leave time buffers.\", \"feasibility_note\": \"The day is realistic because the selected stops are connected and have similar themes.\"}, {\"day\": 2, \"theme\": \"Konak Square + Ephesus\", \"morning\": \"Start with Konak Square at a comfortable pace.\", \"afternoon\": \"Continue with Ephesus.\", \"evening\": \"Have dinner nearby and keep the evening flexible.\", \"estimated_cost\": \"$30-$150 per person\", \"transportation_note\": \"Use the most practical local transportation and leave time buffers.\", \"feasibility_note\": \"The day is realistic because the selected stops are connected and have similar themes.\"}], \"budget_summary\": \"The plan keeps expenses aligned with the low budget level.\", \"backup_options\": [\"Indoor museum or cafe option\", \"Flexible neighborhood walk\"], \"travel_tips\": [\"Check current opening hours before visiting.\", \"Leave buffer time for transportation and weather.\", \"Book popular activities in advance when needed.\"]}",
+        "gold": "{\"trip_summary\": \"A 2-day Izmir itinerary based only on the selected places and user constraints.\", \"daily_itinerary\": [{\"day\": 1, \"theme\": \"Kemeralt\u0131 Bazaar and Alsancak\", \"morning\": \"Start with Kemeralt\u0131 Bazaar and keep the pace comfortable.\", \"afternoon\": \"Continue with Alsancak.\", \"evening\": \"Have dinner nearby and avoid adding extra distant stops.\", \"estimated_cost\": \"$50-$180 per person\", \"transportation_note\": \"Use practical local transit, taxi, walking, or car depending on the destination.\", \"feasibility_note\": \"The plan is realistic because the day is limited to nearby or related stops.\"}, {\"day\": 2, \"theme\": \"Konak Square and Ephesus\", \"morning\": \"Start with Konak Square and keep the pace comfortable.\", \"afternoon\": \"Continue with Ephesus.\", \"evening\": \"Have dinner nearby and avoid adding extra distant stops.\", \"estimated_cost\": \"$50-$180 per person\", \"transportation_note\": \"Use practical local transit, taxi, walking, or car depending on the destination.\", \"feasibility_note\": \"The plan is realistic because the day is limited to nearby or related stops.\"}], \"budget_summary\": \"The plan keeps costs aligned with the stated budget level, excluding flights and major lodging changes.\", \"backup_options\": [\"Cafe or indoor museum option\", \"Flexible neighborhood walk\"], \"travel_tips\": [\"Check opening hours before visiting.\", \"Leave time buffers for transit.\", \"Keep weather-dependent activities flexible.\"]}",
+        "input": {
+          "destination": "Izmir",
+          "trip_length_days": 2,
+          "travelers": "solo traveler",
+          "budget_level": "low",
+          "interests": [
+            "history",
+            "food",
+            "walking"
+          ],
+          "pace": "relaxed",
+          "constraints": [
+            "keep the schedule realistic",
+            "do not add places outside the provided list"
+          ],
+          "selected_places": [
+            "Kemeralt\u0131 Bazaar",
+            "Konak Square",
+            "Alsancak",
+            "Ephesus"
+          ],
+          "route_groups": {
+            "Day 1": [
+              "Kemeralt\u0131 Bazaar",
+              "Alsancak"
+            ],
+            "Day 2": [
+              "Konak Square",
+              "Ephesus"
+            ]
+          }
+        }
+      },
+      {
+        "json_valid": true,
+        "schema_complete": true,
+        "day_count_correct": true,
+        "per_day_complete": true,
+        "no_extra_places_in_themes": false,
+        "extra_places_in_themes": [
+          "Seongsan Ilchongdo"
+        ],
+        "latency_s": 15.440784692764282,
+        "generated": "{\"trip_summary\": \"A 4-day Jeju Island itinerary focused on beaches, relaxation, food, scenery.\", \"daily_itinerary\": [{\"day\": 1, \"theme\": \"Seongsan Ilchongdo and Hamdeok Beach\", \"morning\": \"Start with Seongsan Ilchongdo and keep the pace comfortable.\", \"afternoon\": \"Continue with Hamdeok Beach and have a flexible lunch plan.\", \"evening\": \"Have dinner nearby and leave time for walking or transportation.\", \"estimated_cost\": \"$50-$180 per person\", \"transportation_note\": \"Use local buses, taxis, or ride-sharing services as needed.\", \"feasibility_note\": \"This day is realistic because the main stops are limited and grouped by area.\"}, {\"day\": 2, \"theme\": \"Jeongbang Waterfall and Manjanggul Cave\", \"morning\": \"Start with Jeongbang Waterfall and keep the pace comfortable.\", \"afternoon\": \"Continue with Manjanggul Cave and have a flexible lunch plan.\", \"evening\": \"Have dinner nearby and leave time for walking or transportation.\", \"estimated_cost\": \"$50-$180 per person\", \"transportation_note\": \"Use local buses, taxis, or ride-sharing services as needed.\", \"feasibility_note\": \"This day is realistic because the main stops are limited and grouped by area.\"}, {\"day\": 3, \"theme\": \"Hallim Park\", \"morning\": \"Start with Hallim Park and keep the pace comfortable.\", \"afternoon\": \"Continue with Hallim Park and have a flexible lunch plan.\", \"evening\": \"Have dinner nearby and leave time for walking or transportation.\", \"estimated_cost\": \"$50-$180 per person\", \"transportation_note\": \"Use local buses, taxis, or ride-sharing services as needed.\", \"feasibility_note\": \"This day is realistic because the main stops are limited and grouped by area.\"}, {\"day\": 4, \"theme\": \"Aewol Cafe Street\", \"morning\": \"Start with Aewol Cafe Street and keep the pace comfortable.\", \"afternoon\": \"Continue with Aewol Cafe Street and have a flexible lunch plan.\", \"evening\": \"Have dinner nearby and leave time for walking or transportation.\", \"estimated_cost\": \"$50-$180 per person\", \"transportation_note\": \"Use local buses, taxis, or ride-sharing services as needed.\", \"feasibility_note\": \"This day is realistic because the main stops are limited and grouped by area.\"}], \"budget_summary\": \"This itinerary is designed for a low budget excluding flights and major lodging changes.\", \"backup_options\": [\"Indoor museum or cafe option\", \"Flexible neighborhood walk\"], \"travel_tips\": [\"Check opening hours before visiting.\", \"Leave buffer time for transportation.\", \"Book popular activities in advance when needed.\"]}",
+        "gold": "{\"trip_summary\": \"A 4-day Jeju Island itinerary focused on beaches, relaxation, food.\", \"daily_itinerary\": [{\"day\": 1, \"theme\": \"Seongsan Ilchulbong + Hamdeok Beach\", \"morning\": \"Start with Seongsan Ilchulbong at a comfortable pace.\", \"afternoon\": \"Continue with Hamdeok Beach.\", \"evening\": \"Have dinner nearby and keep the evening flexible.\", \"estimated_cost\": \"$50-$180 per person\", \"transportation_note\": \"Use the most practical local transportation and leave time buffers.\", \"feasibility_note\": \"This day is realistic because the main stops are limited and grouped by area.\"}, {\"day\": 2, \"theme\": \"Jeongbang Waterfall + Manjanggul Cave\", \"morning\": \"Start with Jeongbang Waterfall at a comfortable pace.\", \"afternoon\": \"Continue with Manjanggul Cave.\", \"evening\": \"Have dinner nearby and keep the evening flexible.\", \"estimated_cost\": \"$50-$180 per person\", \"transportation_note\": \"Use the most practical local transportation and leave time buffers.\", \"feasibility_note\": \"This day is realistic because the main stops are limited and grouped by area.\"}, {\"day\": 3, \"theme\": \"Hallim Park\", \"morning\": \"Start with Hallim Park at a comfortable pace.\", \"afternoon\": \"Continue with rest time, food, or nearby exploration.\", \"evening\": \"Have dinner nearby and keep the evening flexible.\", \"estimated_cost\": \"$50-$180 per person\", \"transportation_note\": \"Use the most practical local transportation and leave time buffers.\", \"feasibility_note\": \"This day is realistic because the main stops are limited and grouped by area.\"}, {\"day\": 4, \"theme\": \"Aewol Cafe Street\", \"morning\": \"Start with Aewol Cafe Street at a comfortable pace.\", \"afternoon\": \"Continue with rest time, food, or nearby exploration.\", \"evening\": \"Have dinner nearby and keep the evening flexible.\", \"estimated_cost\": \"$50-$180 per person\", \"transportation_note\": \"Use the most practical local transportation and leave time buffers.\", \"feasibility_note\": \"This day is realistic because the main stops are limited and grouped by area.\"}], \"budget_summary\": \"This itinerary is designed for a low budget excluding flights and major lodging variations.\", \"backup_options\": [\"Indoor museum or cafe option\", \"Flexible neighborhood walk\"], \"travel_tips\": [\"Check current opening hours before visiting.\", \"Leave buffer time for transportation and weather.\", \"Book popular activities in advance when needed.\"]}",
+        "input": {
+          "destination": "Jeju Island",
+          "trip_length_days": 4,
+          "travelers": "couple",
+          "budget_level": "low",
+          "interests": [
+            "beaches",
+            "relaxation",
+            "food",
+            "scenery"
+          ],
+          "pace": "relaxed",
+          "constraints": [
+            "follow user constraints",
+            "keep the schedule realistic"
+          ],
+          "selected_places": [
+            "Seongsan Ilchulbong",
+            "Jeongbang Waterfall",
+            "Hallim Park",
+            "Aewol Cafe Street",
+            "Hamdeok Beach",
+            "Manjanggul Cave"
+          ],
+          "route_groups": {
+            "Day 1": [
+              "Seongsan Ilchulbong",
+              "Hamdeok Beach"
+            ],
+            "Day 2": [
+              "Jeongbang Waterfall",
+              "Manjanggul Cave"
+            ],
+            "Day 3": [
+              "Hallim Park"
+            ],
+            "Day 4": [
+              "Aewol Cafe Street"
+            ]
+          }
+        }
+      },
+      {
+        "json_valid": true,
+        "schema_complete": true,
+        "day_count_correct": true,
+        "per_day_complete": true,
+        "no_extra_places_in_themes": true,
+        "extra_places_in_themes": [],
+        "latency_s": 8.054814577102661,
+        "generated": "{\"trip_summary\": \"A 2-day Haifa itinerary focused on beaches, views, and relaxation.\", \"daily_itinerary\": [{\"day\": 1, \"theme\": \"Baha'i Gardens + Stella Maris\", \"morning\": \"Start with Baha'i Gardens at a comfortable pace.\", \"afternoon\": \"Continue with Stella Maris.\", \"evening\": \"Have dinner nearby and keep the evening flexible.\", \"estimated_cost\": \"$50-$180 per person\", \"transportation_note\": \"Use the most practical local transportation and leave time buffers.\", \"feasibility_note\": \"This day is realistic because the main stops are limited and grouped by area.\"}, {\"day\": 2, \"theme\": \"German Colony + Carmel Center\", \"morning\": \"Start with German Colony at a comfortable pace.\", \"afternoon\": \"Continue with Carmel Center.\", \"evening\": \"Have dinner nearby and keep the evening flexible.\", \"estimated_cost\": \"$50-$180 per person\", \"transportation_note\": \"Use the most practical local transportation and leave time buffers.\", \"feasibility_note\": \"This day is realistic because the main stops are limited and grouped by area.\"}], \"budget_summary\": \"This itinerary is designed for a medium budget excluding flights and major lodging variations.\", \"backup_options\": [\"Indoor museum or cafe option\", \"Flexible neighborhood walk\"], \"travel_tips\": [\"Check current opening hours before visiting.\", \"Leave buffer time for transportation and weather.\", \"Book popular activities in advance when needed.\"]}",
+        "gold": "{\"trip_summary\": \"A 2-day Haifa itinerary based only on the selected places and user constraints.\", \"daily_itinerary\": [{\"day\": 1, \"theme\": \"Baha'i Gardens and Stella Maris\", \"morning\": \"Start with Baha'i Gardens and keep the pace comfortable.\", \"afternoon\": \"Continue with Stella Maris.\", \"evening\": \"Have dinner nearby and avoid adding extra distant stops.\", \"estimated_cost\": \"$50-$180 per person\", \"transportation_note\": \"Use practical local transit, taxi, walking, or car depending on the destination.\", \"feasibility_note\": \"The plan is realistic because the day is limited to nearby or related stops.\"}, {\"day\": 2, \"theme\": \"German Colony and Carmel Center\", \"morning\": \"Start with German Colony and keep the pace comfortable.\", \"afternoon\": \"Continue with Carmel Center.\", \"evening\": \"Have dinner nearby and avoid adding extra distant stops.\", \"estimated_cost\": \"$50-$180 per person\", \"transportation_note\": \"Use practical local transit, taxi, walking, or car depending on the destination.\", \"feasibility_note\": \"The plan is realistic because the day is limited to nearby or related stops.\"}], \"budget_summary\": \"The plan keeps costs aligned with the stated budget level, excluding flights and major lodging changes.\", \"backup_options\": [\"Cafe or indoor museum option\", \"Flexible neighborhood walk\"], \"travel_tips\": [\"Check opening hours before visiting.\", \"Leave time buffers for transit.\", \"Keep weather-dependent activities flexible.\"]}",
+        "input": {
+          "destination": "Haifa",
+          "trip_length_days": 2,
+          "travelers": "couple",
+          "budget_level": "medium",
+          "interests": [
+            "beaches",
+            "views",
+            "relaxation"
+          ],
+          "pace": "medium",
+          "constraints": [
+            "keep the schedule realistic",
+            "do not add places outside the provided list"
+          ],
+          "selected_places": [
+            "Baha'i Gardens",
+            "German Colony",
+            "Stella Maris",
+            "Carmel Center"
+          ],
+          "route_groups": {
+            "Day 1": [
+              "Baha'i Gardens",
+              "Stella Maris"
+            ],
+            "Day 2": [
+              "German Colony",
+              "Carmel Center"
+            ]
+          }
+        }
+      },
+      {
+        "json_valid": true,
+        "schema_complete": true,
+        "day_count_correct": true,
+        "per_day_complete": true,
+        "no_extra_places_in_themes": true,
+        "extra_places_in_themes": [],
+        "latency_s": 11.118805408477783,
+        "generated": "{\"trip_summary\": \"A 3-day Copenhagen itinerary focused on beaches, relaxation, food, scenery.\", \"daily_itinerary\": [{\"day\": 1, \"theme\": \"Nyhavn + Torvehallerne\", \"morning\": \"Start with Nyhavn and keep the pace comfortable.\", \"afternoon\": \"Continue with Torvehallerne.\", \"evening\": \"Have dinner nearby and avoid adding extra distant stops.\", \"estimated_cost\": \"$50-$180 per person\", \"transportation_note\": \"Use the most practical local transportation and leave time buffers.\", \"feasibility_note\": \"The day is realistic because the main stops are limited and grouped by area.\"}, {\"day\": 2, \"theme\": \"Tivoli Gardens + Christianshavn\", \"morning\": \"Start with Tivoli Gardens and keep the pace comfortable.\", \"afternoon\": \"Continue with Christianshavn.\", \"evening\": \"Have dinner nearby and avoid adding extra distant stops.\", \"estimated_cost\": \"$50-$180 per person\", \"transportation_note\": \"Use the most practical local transportation and leave time buffers.\", \"feasibility_note\": \"The day is realistic because the main stops are limited and grouped by area.\"}, {\"day\": 3, \"theme\": \"Rosenborg Castle + Designmuseum Denmark\", \"morning\": \"Start with Rosenborg Castle and keep the pace comfortable.\", \"afternoon\": \"Continue with Designmuseum Denmark.\", \"evening\": \"Have dinner nearby and avoid adding extra distant stops.\", \"estimated_cost\": \"$50-$180 per person\", \"transportation_note\": \"Use the most practical local transportation and leave time buffers.\", \"feasibility_note\": \"The day is realistic because the main stops are limited and grouped by area.\"}], \"budget_summary\": \"The plan keeps costs reasonable based on the selected budget level and realistic daily limits.\", \"backup_options\": [\"Indoor museum or cafe option\", \"Flexible neighborhood walk\"], \"travel_tips\": [\"Check opening hours before visiting.\", \"Leave buffer time for transportation.\", \"Book popular activities in advance when needed.\"]}",
+        "gold": "{\"trip_summary\": \"A 3-day Copenhagen itinerary focused on beaches, relaxation, food.\", \"daily_itinerary\": [{\"day\": 1, \"theme\": \"Nyhavn + Torvehallerne\", \"morning\": \"Start with Nyhavn at a comfortable pace.\", \"afternoon\": \"Continue with Torvehallerne.\", \"evening\": \"Have dinner nearby and keep the evening flexible.\", \"estimated_cost\": \"$50-$180 per person\", \"transportation_note\": \"Use the most practical local transportation and leave time buffers.\", \"feasibility_note\": \"This day is realistic because the main stops are limited and grouped by area.\"}, {\"day\": 2, \"theme\": \"Tivoli Gardens + Christianshavn\", \"morning\": \"Start with Tivoli Gardens at a comfortable pace.\", \"afternoon\": \"Continue with Christianshavn.\", \"evening\": \"Have dinner nearby and keep the evening flexible.\", \"estimated_cost\": \"$50-$180 per person\", \"transportation_note\": \"Use the most practical local transportation and leave time buffers.\", \"feasibility_note\": \"This day is realistic because the main stops are limited and grouped by area.\"}, {\"day\": 3, \"theme\": \"Rosenborg Castle + Designmuseum Denmark\", \"morning\": \"Start with Rosenborg Castle at a comfortable pace.\", \"afternoon\": \"Continue with Designmuseum Denmark.\", \"evening\": \"Have dinner nearby and keep the evening flexible.\", \"estimated_cost\": \"$50-$180 per person\", \"transportation_note\": \"Use the most practical local transportation and leave time buffers.\", \"feasibility_note\": \"This day is realistic because the main stops are limited and grouped by area.\"}], \"budget_summary\": \"This itinerary is designed for a low budget excluding flights and major lodging variations.\", \"backup_options\": [\"Indoor museum or cafe option\", \"Flexible neighborhood walk\"], \"travel_tips\": [\"Check current opening hours before visiting.\", \"Leave buffer time for transportation and weather.\", \"Book popular activities in advance when needed.\"]}",
+        "input": {
+          "destination": "Copenhagen",
+          "trip_length_days": 3,
+          "travelers": "couple",
+          "budget_level": "low",
+          "interests": [
+            "beaches",
+            "relaxation",
+            "food",
+            "scenery"
+          ],
+          "pace": "relaxed",
+          "constraints": [
+            "follow user constraints",
+            "keep the schedule realistic"
+          ],
+          "selected_places": [
+            "Nyhavn",
+            "Tivoli Gardens",
+            "Rosenborg Castle",
+            "Torvehallerne",
+            "Christianshavn",
+            "Designmuseum Denmark"
+          ],
+          "route_groups": {
+            "Day 1": [
+              "Nyhavn",
+              "Torvehallerne"
+            ],
+            "Day 2": [
+              "Tivoli Gardens",
+              "Christianshavn"
+            ],
+            "Day 3": [
+              "Rosenborg Castle",
+              "Designmuseum Denmark"
+            ]
+          }
+        }
+      },
+      {
+        "json_valid": true,
+        "schema_complete": true,
+        "day_count_correct": true,
+        "per_day_complete": true,
+        "no_extra_places_in_themes": true,
+        "extra_places_in_themes": [],
+        "latency_s": 12.483823299407959,
+        "generated": "{\"trip_summary\": \"A 3-day Salalah itinerary focused on beaches, views, and relaxation.\", \"daily_itinerary\": [{\"day\": 1, \"theme\": \"Al Mughsail Beach + Al Baleed Archaeological Park\", \"morning\": \"Start with Al Mughsail Beach and keep the pace comfortable.\", \"afternoon\": \"Continue with Al Baleed Archaeological Park and have lunch nearby.\", \"evening\": \"Have dinner at a local restaurant and leave time for flexible activities or transportation.\", \"estimated_cost\": \"$50-$180 per person\", \"transportation_note\": \"Use reliable local transit, taxi, ride-share, or walk when feasible.\", \"feasibility_note\": \"This day is realistic because the main stops are limited to 4-6 hours each.\"}, {\"day\": 2, \"theme\": \"Wadi Darbat\", \"morning\": \"Start with Wadi Darbat and keep the pace comfortable.\", \"afternoon\": \"Continue with Wadi Darbat and have lunch nearby.\", \"evening\": \"Have dinner at a local restaurant and leave time for flexible activities or transportation.\", \"estimated_cost\": \"$50-$180 per person\", \"transportation_note\": \"Use reliable local transit, taxi, ride-share, or walk when feasible.\", \"feasibility_note\": \"This day is realistic because the main stops are limited to 4-6 hours each.\"}, {\"day\": 3, \"theme\": \"Sultan Qaboos Mosque\", \"morning\": \"Start with Sultan Qaboos Mosque and keep the pace comfortable.\", \"afternoon\": \"Continue with Sultan Qaboos Mosque and have lunch nearby.\", \"evening\": \"Have dinner at a local restaurant and leave time for flexible activities or transportation.\", \"estimated_cost\": \"$50-$180 per person\", \"transportation_note\": \"Use reliable local transit, taxi, ride-share, or walk when feasible.\", \"feasibility_note\": \"This day is realistic because the main stops are limited to 4-6 hours each.\"}], \"budget_summary\": \"This itinerary is designed for a medium budget excluding flights and major lodging variations.\", \"backup_options\": [\"Indoor museum\", \"Neighborhood cafe\"], \"travel_tips\": [\"Check opening hours before visiting.\", \"Leave buffer time for transportation.\", \"Book popular activities in advance when needed.\"]}",
+        "gold": "{\"trip_summary\": \"A 3-day Salalah itinerary based only on the selected places and user constraints.\", \"daily_itinerary\": [{\"day\": 1, \"theme\": \"Al Mughsail Beach and Al Baleed Archaeological Park\", \"morning\": \"Start with Al Mughsail Beach and keep the pace comfortable.\", \"afternoon\": \"Continue with Al Baleed Archaeological Park.\", \"evening\": \"Have dinner nearby and avoid adding extra distant stops.\", \"estimated_cost\": \"$50-$180 per person\", \"transportation_note\": \"Use practical local transit, taxi, walking, or car depending on the destination.\", \"feasibility_note\": \"The plan is realistic because the day is limited to nearby or related stops.\"}, {\"day\": 2, \"theme\": \"Wadi Darbat\", \"morning\": \"Start with Wadi Darbat and keep the pace comfortable.\", \"afternoon\": \"Continue with nearby food, rest, or flexible exploration.\", \"evening\": \"Have dinner nearby and avoid adding extra distant stops.\", \"estimated_cost\": \"$50-$180 per person\", \"transportation_note\": \"Use practical local transit, taxi, walking, or car depending on the destination.\", \"feasibility_note\": \"The plan is realistic because the day is limited to nearby or related stops.\"}, {\"day\": 3, \"theme\": \"Sultan Qaboos Mosque\", \"morning\": \"Start with Sultan Qaboos Mosque and keep the pace comfortable.\", \"afternoon\": \"Continue with nearby food, rest, or flexible exploration.\", \"evening\": \"Have dinner nearby and avoid adding extra distant stops.\", \"estimated_cost\": \"$50-$180 per person\", \"transportation_note\": \"Use practical local transit, taxi, walking, or car depending on the destination.\", \"feasibility_note\": \"The plan is realistic because the day is limited to nearby or related stops.\"}], \"budget_summary\": \"The plan keeps costs aligned with the stated budget level, excluding flights and major lodging changes.\", \"backup_options\": [\"Cafe or indoor museum option\", \"Flexible neighborhood walk\"], \"travel_tips\": [\"Check opening hours before visiting.\", \"Leave time buffers for transit.\", \"Keep weather-dependent activities flexible.\"]}",
+        "input": {
+          "destination": "Salalah",
+          "trip_length_days": 3,
+          "travelers": "couple",
+          "budget_level": "medium",
+          "interests": [
+            "beaches",
+            "views",
+            "relaxation"
+          ],
+          "pace": "medium",
+          "constraints": [
+            "keep the schedule realistic",
+            "do not add places outside the provided list"
+          ],
+          "selected_places": [
+            "Al Mughsail Beach",
+            "Wadi Darbat",
+            "Sultan Qaboos Mosque",
+            "Al Baleed Archaeological Park"
+          ],
+          "route_groups": {
+            "Day 1": [
+              "Al Mughsail Beach",
+              "Al Baleed Archaeological Park"
+            ],
+            "Day 2": [
+              "Wadi Darbat"
+            ],
+            "Day 3": [
+              "Sultan Qaboos Mosque"
+            ]
+          }
+        }
+      }
+    ],
+    "aggregate": {
+      "json_valid": 1.0,
+      "schema_complete": 1.0,
+      "day_count_correct": 1.0,
+      "per_day_complete": 1.0,
+      "no_extra_places_in_themes": 0.9,
+      "avg_latency_s": 11.255559992790221,
+      "n": 10
+    }
+  },
+  "base": {
+    "per_example": [
+      {
+        "json_valid": true,
+        "schema_complete": false,
+        "day_count_correct": false,
+        "per_day_complete": true,
+        "no_extra_places_in_themes": true,
+        "extra_places_in_themes": [],
+        "latency_s": 4.731134653091431,
+        "generated": "```json\n{\n  \"itinerary\": {\n    \"Day 1\": {\n      \"morning\": {\n        \"activity\": \"Visit Golden Roof\",\n        \"description\": \"Explore the famous Golden Roof, a landmark in Innsbruck known for its gilded roof tiles.\"\n      },\n      \"afternoon\": {\n        \"activity\": \"Stroll through Old Town\",\n        \"description\": \"Take a leisurely walk through the historic center of Innsbruck, admiring the architecture and local shops.\"\n      },\n      \"evening\": {\n        \"activity\": \"Photography Session in Old Town\",\n        \"description\": \"Capture the beauty of the old town with your camera, especially during sunset.\"\n      }\n    },\n    \"Day 2\": {\n      \"morning\": {\n        \"activity\": \"Hike Nordkette\",\n        \"description\": \"Enjoy a moderate hike on Nordkette, offering scenic views of the Alps and the surrounding valleys.\"\n      },\n      \"afternoon\": {\n        \"activity\": \"Visit Ambras Castle\",\n        \"description\": \"Discover the historical Ambras Castle, which houses a rich collection of art and artifacts.\"\n      },\n      \"evening\": {\n        \"activity\": \"Relax and Reflect\",\n        \"description\": \"Spend some time relaxing or reflecting on your experiences from the day.\"\n      }\n    }\n  }\n}\n```",
+        "gold": "{\"trip_summary\": \"A 2-day Innsbruck itinerary based only on the selected places and user constraints.\", \"daily_itinerary\": [{\"day\": 1, \"theme\": \"Golden Roof and Old Town\", \"morning\": \"Start with Golden Roof and keep the pace comfortable.\", \"afternoon\": \"Continue with Old Town.\", \"evening\": \"Have dinner nearby and avoid adding extra distant stops.\", \"estimated_cost\": \"$50-$180 per person\", \"transportation_note\": \"Use practical local transit, taxi, walking, or car depending on the destination.\", \"feasibility_note\": \"The plan is realistic because the day is limited to nearby or related stops.\"}, {\"day\": 2, \"theme\": \"Nordkette and Ambras Castle\", \"morning\": \"Start with Nordkette and keep the pace comfortable.\", \"afternoon\": \"Continue with Ambras Castle.\", \"evening\": \"Have dinner nearby and avoid adding extra distant stops.\", \"estimated_cost\": \"$50-$180 per person\", \"transportation_note\": \"Use practical local transit, taxi, walking, or car depending on the destination.\", \"feasibility_note\": \"The plan is realistic because the day is limited to nearby or related stops.\"}], \"budget_summary\": \"The plan keeps costs aligned with the stated budget level, excluding flights and major lodging changes.\", \"backup_options\": [\"Cafe or indoor museum option\", \"Flexible neighborhood walk\"], \"travel_tips\": [\"Check opening hours before visiting.\", \"Leave time buffers for transit.\", \"Keep weather-dependent activities flexible.\"]}",
+        "input": {
+          "destination": "Innsbruck",
+          "trip_length_days": 2,
+          "travelers": "family",
+          "budget_level": "medium",
+          "interests": [
+            "nature",
+            "photography",
+            "easy sightseeing"
+          ],
+          "pace": "packed",
+          "constraints": [
+            "keep the schedule realistic",
+            "do not add places outside the provided list"
+          ],
+          "selected_places": [
+            "Golden Roof",
+            "Nordkette",
+            "Old Town",
+            "Ambras Castle"
+          ],
+          "route_groups": {
+            "Day 1": [
+              "Golden Roof",
+              "Old Town"
+            ],
+            "Day 2": [
+              "Nordkette",
+              "Ambras Castle"
+            ]
+          }
+        }
+      },
+      {
+        "json_valid": true,
+        "schema_complete": false,
+        "day_count_correct": false,
+        "per_day_complete": true,
+        "no_extra_places_in_themes": true,
+        "extra_places_in_themes": [],
+        "latency_s": 6.814241647720337,
+        "generated": "```json\n{\n  \"itinerary\": {\n    \"day_1\": {\n      \"activities\": [\n        {\n          \"name\": \"Visit Millennium Park\",\n          \"description\": \"Explore the iconic Cloud Gate sculpture and enjoy the beautiful scenery.\",\n          \"type\": \"beaches, scenery\"\n        },\n        {\n          \"name\": \"Explore Navy Pier\",\n          \"description\": \"Stroll along the pier, visit the aquarium, and enjoy the lakefront views.\",\n          \"type\": \"relaxation, food\"\n        }\n      ],\n      \"notes\": \"Start early to avoid crowds and enjoy a leisurely lunch at one of the pier's restaurants.\"\n    },\n    \"day_2\": {\n      \"activities\": [\n        {\n          \"name\": \"Visit the Art Institute of Chicago\",\n          \"description\": \"Admire masterpieces from around the world and take a guided tour if available.\",\n          \"type\": \"art, food\"\n        },\n        {\n          \"name\": \"Climb to the Top of Willis Tower\",\n          \"description\": \"Enjoy panoramic views of the city from the Skydeck and experience the famous glass floor.\",\n          \"type\": \"scenery, relaxation\"\n        }\n      ],\n      \"notes\": \"Book tickets in advance for the Willis Tower to ensure you get access to the Skydeck.\"\n    },\n    \"day_3\": {\n      \"activities\": [\n        {\n          \"name\": \"Explore the Chicago Riverwalk\",\n          \"description\": \"Walk along the river, visit the Children\u2019s Museum, and enjoy street food vendors.\",\n          \"type\": \"scenery, food\"\n        },\n        {\n          \"name\": \"Shop on the Magnificent Mile\",\n          \"description\": \"Experience high-end shopping and dining in the heart of the city.\",\n          \"type\": \"shopping, food\"\n        }\n      ],\n      \"notes\": \"Consider visiting during off-peak hours to avoid large crowds and long lines.\"\n    }\n  }\n}\n```",
+        "gold": "{\"trip_summary\": \"A 3-day Chicago itinerary focused on beaches, relaxation, food.\", \"daily_itinerary\": [{\"day\": 1, \"theme\": \"Millennium Park + Navy Pier\", \"morning\": \"Start with Millennium Park at a comfortable pace.\", \"afternoon\": \"Continue with Navy Pier.\", \"evening\": \"Have dinner nearby and keep the evening flexible.\", \"estimated_cost\": \"$50-$180 per person\", \"transportation_note\": \"Use the most practical local transportation and leave time buffers.\", \"feasibility_note\": \"This day is realistic because the main stops are limited and grouped by area.\"}, {\"day\": 2, \"theme\": \"Art Institute of Chicago + Willis Tower\", \"morning\": \"Start with Art Institute of Chicago at a comfortable pace.\", \"afternoon\": \"Continue with Willis Tower.\", \"evening\": \"Have dinner nearby and keep the evening flexible.\", \"estimated_cost\": \"$50-$180 per person\", \"transportation_note\": \"Use the most practical local transportation and leave time buffers.\", \"feasibility_note\": \"This day is realistic because the main stops are limited and grouped by area.\"}, {\"day\": 3, \"theme\": \"Chicago Riverwalk + Magnificent Mile\", \"morning\": \"Start with Chicago Riverwalk at a comfortable pace.\", \"afternoon\": \"Continue with Magnificent Mile.\", \"evening\": \"Have dinner nearby and keep the evening flexible.\", \"estimated_cost\": \"$50-$180 per person\", \"transportation_note\": \"Use the most practical local transportation and leave time buffers.\", \"feasibility_note\": \"This day is realistic because the main stops are limited and grouped by area.\"}], \"budget_summary\": \"This itinerary is designed for a high budget excluding flights and major lodging variations.\", \"backup_options\": [\"Indoor museum or cafe option\", \"Flexible neighborhood walk\"], \"travel_tips\": [\"Check current opening hours before visiting.\", \"Leave buffer time for transportation and weather.\", \"Book popular activities in advance when needed.\"]}",
+        "input": {
+          "destination": "Chicago",
+          "trip_length_days": 3,
+          "travelers": "couple",
+          "budget_level": "high",
+          "interests": [
+            "beaches",
+            "relaxation",
+            "food",
+            "scenery"
+          ],
+          "pace": "packed",
+          "constraints": [
+            "follow user constraints",
+            "keep the schedule realistic"
+          ],
+          "selected_places": [
+            "Millennium Park",
+            "Art Institute of Chicago",
+            "Chicago Riverwalk",
+            "Navy Pier",
+            "Willis Tower",
+            "Magnificent Mile"
+          ],
+          "route_groups": {
+            "Day 1": [
+              "Millennium Park",
+              "Navy Pier"
+            ],
+            "Day 2": [
+              "Art Institute of Chicago",
+              "Willis Tower"
+            ],
+            "Day 3": [
+              "Chicago Riverwalk",
+              "Magnificent Mile"
+            ]
+          }
+        }
+      },
+      {
+        "json_valid": true,
+        "schema_complete": false,
+        "day_count_correct": false,
+        "per_day_complete": true,
+        "no_extra_places_in_themes": true,
+        "extra_places_in_themes": [],
+        "latency_s": 10.180114984512329,
+        "generated": "```json\n{\n  \"itinerary\": {\n    \"Day 1\": {\n      \"morning\": {\n        \"activity\": \"Visit Cerro San Crist\u00f3bal\",\n        \"description\": \"Enjoy the panoramic views of Santiago from the top of Cerro San Crist\u00f3bal. Take your time to explore the park and its viewpoints.\",\n        \"cost\": \"free\"\n      },\n      \"afternoon\": {\n        \"activity\": \"Explore Lastarria\",\n        \"description\": \"Stroll through the charming Lastarria neighborhood, known for its vibrant cafes, boutiques, and local markets. Enjoy a relaxed lunch or coffee at one of the many cozy spots.\",\n        \"cost\": \"low\"\n      },\n      \"evening\": {\n        \"activity\": \"Dinner in Lastarria\",\n        \"description\": \"Sample some traditional Chilean cuisine at a local restaurant. The area offers a variety of dining options to suit different tastes and budgets.\",\n        \"cost\": \"low\"\n      }\n    },\n    \"Day 2\": {\n      \"morning\": {\n        \"activity\": \"Visit Plaza de Armas\",\n        \"description\": \"Start your day with a visit to the historic Plaza de Armas, the heart of Santiago. Walk around the square and admire the architecture of the surrounding buildings.\",\n        \"cost\": \"free\"\n      },\n      \"afternoon\": {\n        \"activity\": \"Explore the Maipo Valley\",\n        \"description\": \"Take a scenic drive to the Maipo Valley, known for its vineyards and natural beauty. Visit a winery for a tasting session and enjoy the countryside scenery.\",\n        \"cost\": \"moderate\"\n      },\n      \"evening\": {\n        \"activity\": \"Relax and enjoy the scenery\",\n        \"description\": \"Return to Santiago and spend the evening relaxing by the river or enjoying a leisurely walk along the banks of the Mapocho River.\",\n        \"cost\": \"free\"\n      }\n    },\n    \"Day 3\": {\n      \"morning\": {\n        \"activity\": \"Visit Museo Chileno de Arte Precolombino\",\n        \"description\": \"Discover the rich pre-Columbian history of South America at the Museo Chileno de Arte Precolombino. Spend the morning exploring the museum\u2019s extensive collection.\",\n        \"cost\": \"low\"\n      },\n      \"afternoon\": {\n        \"activity\": \"Relax and enjoy Santiago\",\n        \"description\": \"Take it easy in the afternoon, perhaps visiting a local park or simply enjoying the city\u2019s relaxed atmosphere. Consider a short walk to nearby parks or gardens.\",\n        \"cost\": \"free\"\n      },\n      \"evening\": {\n        \"activity\": \"Dinner in Lastarria (revisit)\",\n        \"description\": \"If you haven\u2019t already, revisit Lastarria for dinner. This time, try a different restaurant or indulge in a more upscale dining experience.\",\n        \"cost\": \"low\"\n      }\n    }\n  }\n}\n```",
+        "gold": "{\"trip_summary\": \"A 3-day Santiago itinerary focused on beaches, relaxation, food.\", \"daily_itinerary\": [{\"day\": 1, \"theme\": \"Cerro San Crist\u00f3bal + Lastarria\", \"morning\": \"Start with Cerro San Crist\u00f3bal at a comfortable pace.\", \"afternoon\": \"Continue with Lastarria.\", \"evening\": \"Have dinner nearby and keep the evening flexible.\", \"estimated_cost\": \"$50-$180 per person\", \"transportation_note\": \"Use the most practical local transportation and leave time buffers.\", \"feasibility_note\": \"This day is realistic because the main stops are limited and grouped by area.\"}, {\"day\": 2, \"theme\": \"Plaza de Armas + Maipo Valley\", \"morning\": \"Start with Plaza de Armas at a comfortable pace.\", \"afternoon\": \"Continue with Maipo Valley.\", \"evening\": \"Have dinner nearby and keep the evening flexible.\", \"estimated_cost\": \"$50-$180 per person\", \"transportation_note\": \"Use the most practical local transportation and leave time buffers.\", \"feasibility_note\": \"This day is realistic because the main stops are limited and grouped by area.\"}, {\"day\": 3, \"theme\": \"Museo Chileno de Arte Precolombino\", \"morning\": \"Start with Museo Chileno de Arte Precolombino at a comfortable pace.\", \"afternoon\": \"Continue with rest time, food, or nearby exploration.\", \"evening\": \"Have dinner nearby and keep the evening flexible.\", \"estimated_cost\": \"$50-$180 per person\", \"transportation_note\": \"Use the most practical local transportation and leave time buffers.\", \"feasibility_note\": \"This day is realistic because the main stops are limited and grouped by area.\"}], \"budget_summary\": \"This itinerary is designed for a low budget excluding flights and major lodging variations.\", \"backup_options\": [\"Indoor museum or cafe option\", \"Flexible neighborhood walk\"], \"travel_tips\": [\"Check current opening hours before visiting.\", \"Leave buffer time for transportation and weather.\", \"Book popular activities in advance when needed.\"]}",
+        "input": {
+          "destination": "Santiago",
+          "trip_length_days": 3,
+          "travelers": "couple",
+          "budget_level": "low",
+          "interests": [
+            "beaches",
+            "relaxation",
+            "food",
+            "scenery"
+          ],
+          "pace": "relaxed",
+          "constraints": [
+            "follow user constraints",
+            "keep the schedule realistic"
+          ],
+          "selected_places": [
+            "Cerro San Crist\u00f3bal",
+            "Plaza de Armas",
+            "Museo Chileno de Arte Precolombino",
+            "Lastarria",
+            "Maipo Valley"
+          ],
+          "route_groups": {
+            "Day 1": [
+              "Cerro San Crist\u00f3bal",
+              "Lastarria"
+            ],
+            "Day 2": [
+              "Plaza de Armas",
+              "Maipo Valley"
+            ],
+            "Day 3": [
+              "Museo Chileno de Arte Precolombino"
+            ]
+          }
+        }
+      },
+      {
+        "json_valid": false,
+        "schema_complete": false,
+        "day_count_correct": false,
+        "per_day_complete": false,
+        "no_extra_places_in_themes": false,
+        "parse_error": "unbalanced braces",
+        "latency_s": 17.178242444992065,
+        "generated": "```json\n{\n  \"itinerary\": {\n    \"Day 1\": {\n      \"activities\": [\n        {\n          \"name\": \"Visit Torres del Paine National Park\",\n          \"description\": \"Explore the iconic granite towers of Torres del Paine, one of Patagonia's most famous landmarks.\",\n          \"type\": \"nature\",\n          \"location\": \"Torres del Paine\"\n        },\n        {\n          \"name\": \"Hike W Circuit\",\n          \"description\": \"Embark on a challenging but rewarding hike around the W Circuit, offering stunning views of the park\u2019s landscapes.\",\n          \"type\": \"hiking\",\n          \"location\": \"Torres del Paine\"\n        }\n      ],\n      \"meals\": [\n        {\n          \"meal_type\": \"breakfast\",\n          \"restaurant\": \"Local caf\u00e9 in Puerto Natales\",\n          \"cuisine\": \"Chilean\",\n          \"description\": \"Enjoy a hearty breakfast with local specialties.\"\n        },\n        {\n          \"meal_type\": \"lunch\",\n          \"restaurant\": \"Caf\u00e9 in the park\",\n          \"cuisine\": \"International\",\n          \"description\": \"Savor a diverse lunch with options from around the world.\"\n        },\n        {\n          \"meal_type\": \"dinner\",\n          \"restaurant\": \"Fine dining restaurant in Puerto Natales\",\n          \"cuisine\": \"Chilean\",\n          \"description\": \"Dine on exquisite Chilean cuisine at a high-end restaurant.\"\n        }\n      ]\n    },\n    \"Day 2\": {\n      \"activities\": [\n        {\n          \"name\": \"Visit Grey Glacier\",\n          \"description\": \"Explore the majestic Grey Glacier, known for its blue ice and stunning scenery.\",\n          \"type\": \"nature\",\n          \"location\": \"Grey Glacier\"\n        },\n        {\n          \"name\": \"Ice Caving Tour\",\n          \"description\": \"Experience the thrill of exploring ice caves formed by the glacier.\",\n          \"type\": \"adventure\",\n          \"location\": \"Grey Glacier\"\n        }\n      ],\n      \"meals\": [\n        {\n          \"meal_type\": \"breakfast\",\n          \"restaurant\": \"Local caf\u00e9 in Puerto Natales\",\n          \"cuisine\": \"Chilean\",\n          \"description\": \"Start your day with a delicious breakfast.\"\n        },\n        {\n          \"meal_type\": \"lunch\",\n          \"restaurant\": \"Caf\u00e9 in Puerto Natales\",\n          \"cuisine\": \"International\",\n          \"description\": \"Enjoy a variety of lunch options in a cozy caf\u00e9.\"\n        },\n        {\n          \"meal_type\": \"dinner\",\n          \"restaurant\": \"Fine dining restaurant in Puerto Natales\",\n          \"cuisine\": \"Chilean\",\n          \"description\": \"Dine on a gourmet dinner featuring local ingredients.\"\n        }\n      ]\n    },\n    \"Day 3\": {\n      \"activities\": [\n        {\n          \"name\": \"Explore Puerto Natales\",\n          \"description\": \"Discover the charming town of Puerto Natales, known for its markets and architecture.\",\n          \"type\": \"city\",\n          \"location\": \"Puerto Natales\"\n        },\n        {\n          \"name\": \"Visit Local Markets\",\n          \"description\": \"Shop for souvenirs and local crafts at the bustling markets of Puerto Natales.\",\n          \"type\": \"shopping\",\n          \"location\": \"Puerto Natales\"\n        }\n      ],\n      \"meals\": [\n        {\n          \"meal_type\": \"breakfast\",\n          \"restaurant\": \"Local caf\u00e9 in Puerto Natales\",\n          \"cuisine\": \"Chilean\",\n          \"description\": \"Begin your day with a traditional Chilean breakfast.\"\n        },\n        {\n          \"meal_type\": \"lunch\",\n          \"restaurant\": \"Traditional Chilean restaurant in Puerto Natales\",\n          \"cuisine\": \"Chilean\",\n          \"description\": \"Sample authentic Chilean dishes for lunch.\"\n        },\n        {\n          \"meal_type\": \"dinner\",\n          \"restaurant\": \"Fine dining restaurant in Puerto Natales\",\n          \"cuisine\": \"Chilean\",\n          \"description\": \"Dine on a luxurious dinner with a view of the surrounding landscape.\"\n        }\n      ]\n    },\n    \"Day 4\": {\n      \"activities\": [\n        {\n          \"name\": \"Visit Mirador Base Torres\",\n          \"description\": \"Climb to the Mirador Base Torres for panoramic views of the Torres del Paine.\",\n          \"type\": \"hiking\",\n          \"location\": \"Mirador Base Torres\"\n        },\n        {\n          \"name\": \"Photography Workshop\",\n          \"description\": \"Join a photography workshop to capture the beauty of the landscape.\",\n          \"type\": \"workshop\",\n          \"location\": \"Mirador Base Torres\"\n        }\n      ],\n      \"meals\": [\n        {\n          \"meal_type\": \"breakfast\",\n          \"restaurant\": \"Local caf\u00e9 in Puerto Natales\",\n          \"cuisine",
+        "gold": "{\"trip_summary\": \"A 5-day Patagonia Chile itinerary focused on museums, markets, architecture.\", \"daily_itinerary\": [{\"day\": 1, \"theme\": \"Torres del Paine\", \"morning\": \"Start with Torres del Paine at a comfortable pace.\", \"afternoon\": \"Continue with rest time, food, or nearby exploration.\", \"evening\": \"Have dinner nearby and keep the evening flexible.\", \"estimated_cost\": \"$50-$180 per person\", \"transportation_note\": \"Use the most practical local transportation and leave time buffers.\", \"feasibility_note\": \"This day is realistic because the main stops are limited and grouped by area.\"}, {\"day\": 2, \"theme\": \"Grey Glacier\", \"morning\": \"Start with Grey Glacier at a comfortable pace.\", \"afternoon\": \"Continue with rest time, food, or nearby exploration.\", \"evening\": \"Have dinner nearby and keep the evening flexible.\", \"estimated_cost\": \"$50-$180 per person\", \"transportation_note\": \"Use the most practical local transportation and leave time buffers.\", \"feasibility_note\": \"This day is realistic because the main stops are limited and grouped by area.\"}, {\"day\": 3, \"theme\": \"Puerto Natales\", \"morning\": \"Start with Puerto Natales at a comfortable pace.\", \"afternoon\": \"Continue with rest time, food, or nearby exploration.\", \"evening\": \"Have dinner nearby and keep the evening flexible.\", \"estimated_cost\": \"$50-$180 per person\", \"transportation_note\": \"Use the most practical local transportation and leave time buffers.\", \"feasibility_note\": \"This day is realistic because the main stops are limited and grouped by area.\"}, {\"day\": 4, \"theme\": \"Mirador Base Torres\", \"morning\": \"Start with Mirador Base Torres at a comfortable pace.\", \"afternoon\": \"Continue with rest time, food, or nearby exploration.\", \"evening\": \"Have dinner nearby and keep the evening flexible.\", \"estimated_cost\": \"$50-$180 per person\", \"transportation_note\": \"Use the most practical local transportation and leave time buffers.\", \"feasibility_note\": \"This day is realistic because the main stops are limited and grouped by area.\"}, {\"day\": 5, \"theme\": \"Lago Peho\u00e9\", \"morning\": \"Start with Lago Peho\u00e9 at a comfortable pace.\", \"afternoon\": \"Continue with rest time, food, or nearby exploration.\", \"evening\": \"Have dinner nearby and keep the evening flexible.\", \"estimated_cost\": \"$50-$180 per person\", \"transportation_note\": \"Use the most practical local transportation and leave time buffers.\", \"feasibility_note\": \"This day is realistic because the main stops are limited and grouped by area.\"}], \"budget_summary\": \"This itinerary is designed for a high budget excluding flights and major lodging variations.\", \"backup_options\": [\"Indoor museum or cafe option\", \"Flexible neighborhood walk\"], \"travel_tips\": [\"Check current opening hours before visiting.\", \"Leave buffer time for transportation and weather.\", \"Book popular activities in advance when needed.\"]}",
+        "input": {
+          "destination": "Patagonia Chile",
+          "trip_length_days": 5,
+          "travelers": "solo traveler",
+          "budget_level": "high",
+          "interests": [
+            "museums",
+            "markets",
+            "architecture",
+            "cafes"
+          ],
+          "pace": "packed",
+          "constraints": [
+            "follow user constraints",
+            "keep the schedule realistic"
+          ],
+          "selected_places": [
+            "Torres del Paine",
+            "Grey Glacier",
+            "Puerto Natales",
+            "Mirador Base Torres",
+            "Lago Peho\u00e9"
+          ],
+          "route_groups": {
+            "Day 1": [
+              "Torres del Paine"
+            ],
+            "Day 2": [
+              "Grey Glacier"
+            ],
+            "Day 3": [
+              "Puerto Natales"
+            ],
+            "Day 4": [
+              "Mirador Base Torres"
+            ],
+            "Day 5": [
+              "Lago Peho\u00e9"
+            ]
+          }
+        }
+      },
+      {
+        "json_valid": true,
+        "schema_complete": false,
+        "day_count_correct": false,
+        "per_day_complete": true,
+        "no_extra_places_in_themes": true,
+        "extra_places_in_themes": [],
+        "latency_s": 4.128698348999023,
+        "generated": "```json\n{\n  \"itinerary\": {\n    \"Day 1\": {\n      \"morning\": {\n        \"activity\": \"Visit Chorsu Bazaar\",\n        \"description\": \"Explore the vibrant local market known for its textiles, ceramics, and spices.\",\n        \"duration\": \"3 hours\"\n      },\n      \"afternoon\": {\n        \"activity\": \"Stroll through Amir Timur Square\",\n        \"description\": \"Relax in the central square named after the famous Timurid ruler, enjoying the greenery and historical ambiance.\",\n        \"duration\": \"2 hours\"\n      }\n    },\n    \"Day 2\": {\n      \"morning\": {\n        \"activity\": \"Explore Khast Imam Complex\",\n        \"description\": \"Discover the ancient architectural marvels including the Kalyan Minaret and the Kukeldash Madrasah.\",\n        \"duration\": \"4 hours\"\n      },\n      \"afternoon\": {\n        \"activity\": \"Visit Metro Stations\",\n        \"description\": \"Learn about Tashkent\u2019s metro system and enjoy a leisurely walk around the stations, which are known for their unique designs.\",\n        \"duration\": \"2 hours\"\n      }\n    }\n  }\n}\n```",
+        "gold": "{\"trip_summary\": \"A 2-day Tashkent itinerary based only on the selected places and user constraints.\", \"daily_itinerary\": [{\"day\": 1, \"theme\": \"Chorsu Bazaar and Amir Timur Square\", \"morning\": \"Start with Chorsu Bazaar and keep the pace comfortable.\", \"afternoon\": \"Continue with Amir Timur Square.\", \"evening\": \"Have dinner nearby and avoid adding extra distant stops.\", \"estimated_cost\": \"$50-$180 per person\", \"transportation_note\": \"Use practical local transit, taxi, walking, or car depending on the destination.\", \"feasibility_note\": \"The plan is realistic because the day is limited to nearby or related stops.\"}, {\"day\": 2, \"theme\": \"Khast Imam and Metro Stations\", \"morning\": \"Start with Khast Imam and keep the pace comfortable.\", \"afternoon\": \"Continue with Metro Stations.\", \"evening\": \"Have dinner nearby and avoid adding extra distant stops.\", \"estimated_cost\": \"$50-$180 per person\", \"transportation_note\": \"Use practical local transit, taxi, walking, or car depending on the destination.\", \"feasibility_note\": \"The plan is realistic because the day is limited to nearby or related stops.\"}], \"budget_summary\": \"The plan keeps costs aligned with the stated budget level, excluding flights and major lodging changes.\", \"backup_options\": [\"Cafe or indoor museum option\", \"Flexible neighborhood walk\"], \"travel_tips\": [\"Check opening hours before visiting.\", \"Leave time buffers for transit.\", \"Keep weather-dependent activities flexible.\"]}",
+        "input": {
+          "destination": "Tashkent",
+          "trip_length_days": 2,
+          "travelers": "couple",
+          "budget_level": "medium",
+          "interests": [
+            "beaches",
+            "views",
+            "relaxation"
+          ],
+          "pace": "medium",
+          "constraints": [
+            "keep the schedule realistic",
+            "do not add places outside the provided list"
+          ],
+          "selected_places": [
+            "Chorsu Bazaar",
+            "Khast Imam",
+            "Amir Timur Square",
+            "Metro Stations"
+          ],
+          "route_groups": {
+            "Day 1": [
+              "Chorsu Bazaar",
+              "Amir Timur Square"
+            ],
+            "Day 2": [
+              "Khast Imam",
+              "Metro Stations"
+            ]
+          }
+        }
+      },
+      {
+        "json_valid": true,
+        "schema_complete": false,
+        "day_count_correct": false,
+        "per_day_complete": true,
+        "no_extra_places_in_themes": true,
+        "extra_places_in_themes": [],
+        "latency_s": 5.044439077377319,
+        "generated": "```json\n{\n  \"itinerary\": {\n    \"Day 1\": {\n      \"morning\": {\n        \"activity\": \"Visit Kemeralt\u0131 Bazaar\",\n        \"description\": \"Explore the vibrant Kemeralt\u0131 Bazaar, one of the oldest covered markets in Turkey, known for its traditional Turkish goods and local delicacies.\",\n        \"cost\": \"low\",\n        \"duration\": \"3 hours\"\n      },\n      \"afternoon\": {\n        \"activity\": \"Stroll through Alsancak\",\n        \"description\": \"Take a leisurely walk through the historic Alsancak district, enjoying the charming streets and local atmosphere.\",\n        \"cost\": \"low\",\n        \"duration\": \"2 hours\"\n      }\n    },\n    \"Day 2\": {\n      \"morning\": {\n        \"activity\": \"Relax at Konak Square\",\n        \"description\": \"Spend some time relaxing at Konak Square, a central gathering place with beautiful fountains and a great spot for people-watching.\",\n        \"cost\": \"free\",\n        \"duration\": \"2 hours\"\n      },\n      \"afternoon\": {\n        \"activity\": \"Visit Ephesus\",\n        \"description\": \"Travel to Ephesus, an ancient city with well-preserved ruins, including the Library of Celsus and the Great Theatre. Enjoy a guided tour to learn about its rich history.\",\n        \"cost\": \"moderate\",\n        \"duration\": \"4 hours\"\n      }\n    }\n  }\n}\n```",
+        "gold": "{\"trip_summary\": \"A 2-day Izmir itinerary based only on the selected places and user constraints.\", \"daily_itinerary\": [{\"day\": 1, \"theme\": \"Kemeralt\u0131 Bazaar and Alsancak\", \"morning\": \"Start with Kemeralt\u0131 Bazaar and keep the pace comfortable.\", \"afternoon\": \"Continue with Alsancak.\", \"evening\": \"Have dinner nearby and avoid adding extra distant stops.\", \"estimated_cost\": \"$50-$180 per person\", \"transportation_note\": \"Use practical local transit, taxi, walking, or car depending on the destination.\", \"feasibility_note\": \"The plan is realistic because the day is limited to nearby or related stops.\"}, {\"day\": 2, \"theme\": \"Konak Square and Ephesus\", \"morning\": \"Start with Konak Square and keep the pace comfortable.\", \"afternoon\": \"Continue with Ephesus.\", \"evening\": \"Have dinner nearby and avoid adding extra distant stops.\", \"estimated_cost\": \"$50-$180 per person\", \"transportation_note\": \"Use practical local transit, taxi, walking, or car depending on the destination.\", \"feasibility_note\": \"The plan is realistic because the day is limited to nearby or related stops.\"}], \"budget_summary\": \"The plan keeps costs aligned with the stated budget level, excluding flights and major lodging changes.\", \"backup_options\": [\"Cafe or indoor museum option\", \"Flexible neighborhood walk\"], \"travel_tips\": [\"Check opening hours before visiting.\", \"Leave time buffers for transit.\", \"Keep weather-dependent activities flexible.\"]}",
+        "input": {
+          "destination": "Izmir",
+          "trip_length_days": 2,
+          "travelers": "solo traveler",
+          "budget_level": "low",
+          "interests": [
+            "history",
+            "food",
+            "walking"
+          ],
+          "pace": "relaxed",
+          "constraints": [
+            "keep the schedule realistic",
+            "do not add places outside the provided list"
+          ],
+          "selected_places": [
+            "Kemeralt\u0131 Bazaar",
+            "Konak Square",
+            "Alsancak",
+            "Ephesus"
+          ],
+          "route_groups": {
+            "Day 1": [
+              "Kemeralt\u0131 Bazaar",
+              "Alsancak"
+            ],
+            "Day 2": [
+              "Konak Square",
+              "Ephesus"
+            ]
+          }
+        }
+      },
+      {
+        "json_valid": true,
+        "schema_complete": false,
+        "day_count_correct": false,
+        "per_day_complete": true,
+        "no_extra_places_in_themes": true,
+        "extra_places_in_themes": [],
+        "latency_s": 6.784396648406982,
+        "generated": "```json\n{\n  \"itinerary\": {\n    \"Day 1\": {\n      \"morning\": {\n        \"activity\": \"Visit Seongsan Ilchulbong\",\n        \"description\": \"Explore the iconic sunrise peak at Seongsan Ilchulbong, known for its dramatic basalt columns and stunning views.\",\n        \"duration\": \"4 hours\"\n      },\n      \"afternoon\": {\n        \"activity\": \"Relax at Hamdeok Beach\",\n        \"description\": \"Enjoy a leisurely afternoon at Hamdeok Beach, one of Jeju Island\u2019s most beautiful beaches with clear waters and soft sand.\",\n        \"duration\": \"3 hours\"\n      }\n    },\n    \"Day 2\": {\n      \"morning\": {\n        \"activity\": \"Hike to Jeongbang Waterfall\",\n        \"description\": \"Take a scenic hike to Jeongbang Waterfall, where you can admire the cascading water and lush greenery surrounding the area.\",\n        \"duration\": \"5 hours\"\n      },\n      \"afternoon\": {\n        \"activity\": \"Explore Manjanggul Cave\",\n        \"description\": \"Discover the underground world of Manjanggul Cave, a vast limestone cave system with impressive stalactites and stalagmites.\",\n        \"duration\": \"3 hours\"\n      }\n    },\n    \"Day 3\": {\n      \"morning\": {\n        \"activity\": \"Explore Hallim Park\",\n        \"description\": \"Stroll through the tranquil Hallim Park, known for its cherry blossoms in spring and beautiful scenery year-round.\",\n        \"duration\": \"4 hours\"\n      }\n    },\n    \"Day 4\": {\n      \"morning\": {\n        \"activity\": \"Experience Aewol Cafe Street\",\n        \"description\": \"Savor local cuisine and coffee at Aewol Cafe Street, a charming area filled with cozy cafes and artisan shops.\",\n        \"duration\": \"3 hours\"\n      }\n    }\n  }\n}\n```",
+        "gold": "{\"trip_summary\": \"A 4-day Jeju Island itinerary focused on beaches, relaxation, food.\", \"daily_itinerary\": [{\"day\": 1, \"theme\": \"Seongsan Ilchulbong + Hamdeok Beach\", \"morning\": \"Start with Seongsan Ilchulbong at a comfortable pace.\", \"afternoon\": \"Continue with Hamdeok Beach.\", \"evening\": \"Have dinner nearby and keep the evening flexible.\", \"estimated_cost\": \"$50-$180 per person\", \"transportation_note\": \"Use the most practical local transportation and leave time buffers.\", \"feasibility_note\": \"This day is realistic because the main stops are limited and grouped by area.\"}, {\"day\": 2, \"theme\": \"Jeongbang Waterfall + Manjanggul Cave\", \"morning\": \"Start with Jeongbang Waterfall at a comfortable pace.\", \"afternoon\": \"Continue with Manjanggul Cave.\", \"evening\": \"Have dinner nearby and keep the evening flexible.\", \"estimated_cost\": \"$50-$180 per person\", \"transportation_note\": \"Use the most practical local transportation and leave time buffers.\", \"feasibility_note\": \"This day is realistic because the main stops are limited and grouped by area.\"}, {\"day\": 3, \"theme\": \"Hallim Park\", \"morning\": \"Start with Hallim Park at a comfortable pace.\", \"afternoon\": \"Continue with rest time, food, or nearby exploration.\", \"evening\": \"Have dinner nearby and keep the evening flexible.\", \"estimated_cost\": \"$50-$180 per person\", \"transportation_note\": \"Use the most practical local transportation and leave time buffers.\", \"feasibility_note\": \"This day is realistic because the main stops are limited and grouped by area.\"}, {\"day\": 4, \"theme\": \"Aewol Cafe Street\", \"morning\": \"Start with Aewol Cafe Street at a comfortable pace.\", \"afternoon\": \"Continue with rest time, food, or nearby exploration.\", \"evening\": \"Have dinner nearby and keep the evening flexible.\", \"estimated_cost\": \"$50-$180 per person\", \"transportation_note\": \"Use the most practical local transportation and leave time buffers.\", \"feasibility_note\": \"This day is realistic because the main stops are limited and grouped by area.\"}], \"budget_summary\": \"This itinerary is designed for a low budget excluding flights and major lodging variations.\", \"backup_options\": [\"Indoor museum or cafe option\", \"Flexible neighborhood walk\"], \"travel_tips\": [\"Check current opening hours before visiting.\", \"Leave buffer time for transportation and weather.\", \"Book popular activities in advance when needed.\"]}",
+        "input": {
+          "destination": "Jeju Island",
+          "trip_length_days": 4,
+          "travelers": "couple",
+          "budget_level": "low",
+          "interests": [
+            "beaches",
+            "relaxation",
+            "food",
+            "scenery"
+          ],
+          "pace": "relaxed",
+          "constraints": [
+            "follow user constraints",
+            "keep the schedule realistic"
+          ],
+          "selected_places": [
+            "Seongsan Ilchulbong",
+            "Jeongbang Waterfall",
+            "Hallim Park",
+            "Aewol Cafe Street",
+            "Hamdeok Beach",
+            "Manjanggul Cave"
+          ],
+          "route_groups": {
+            "Day 1": [
+              "Seongsan Ilchulbong",
+              "Hamdeok Beach"
+            ],
+            "Day 2": [
+              "Jeongbang Waterfall",
+              "Manjanggul Cave"
+            ],
+            "Day 3": [
+              "Hallim Park"
+            ],
+            "Day 4": [
+              "Aewol Cafe Street"
+            ]
+          }
+        }
+      },
+      {
+        "json_valid": true,
+        "schema_complete": false,
+        "day_count_correct": false,
+        "per_day_complete": true,
+        "no_extra_places_in_themes": true,
+        "extra_places_in_themes": [],
+        "latency_s": 3.6472461223602295,
+        "generated": "```json\n{\n  \"itinerary\": {\n    \"Day 1\": {\n      \"morning\": {\n        \"activity\": \"Visit Baha'i Gardens\",\n        \"description\": \"Explore the stunning gardens and learn about their significance.\",\n        \"duration\": \"3 hours\"\n      },\n      \"afternoon\": {\n        \"activity\": \"Relax at Stella Maris\",\n        \"description\": \"Enjoy the beautiful views from Stella Maris and perhaps have a picnic.\",\n        \"duration\": \"2 hours\"\n      }\n    },\n    \"Day 2\": {\n      \"morning\": {\n        \"activity\": \"Explore German Colony\",\n        \"description\": \"Walk through the charming streets of the German Colony and admire its architecture.\",\n        \"duration\": \"2 hours\"\n      },\n      \"afternoon\": {\n        \"activity\": \"Shopping at Carmel Center\",\n        \"description\": \"Take some time to shop for souvenirs or just relax in the mall.\",\n        \"duration\": \"2 hours\"\n      }\n    }\n  }\n}\n```",
+        "gold": "{\"trip_summary\": \"A 2-day Haifa itinerary based only on the selected places and user constraints.\", \"daily_itinerary\": [{\"day\": 1, \"theme\": \"Baha'i Gardens and Stella Maris\", \"morning\": \"Start with Baha'i Gardens and keep the pace comfortable.\", \"afternoon\": \"Continue with Stella Maris.\", \"evening\": \"Have dinner nearby and avoid adding extra distant stops.\", \"estimated_cost\": \"$50-$180 per person\", \"transportation_note\": \"Use practical local transit, taxi, walking, or car depending on the destination.\", \"feasibility_note\": \"The plan is realistic because the day is limited to nearby or related stops.\"}, {\"day\": 2, \"theme\": \"German Colony and Carmel Center\", \"morning\": \"Start with German Colony and keep the pace comfortable.\", \"afternoon\": \"Continue with Carmel Center.\", \"evening\": \"Have dinner nearby and avoid adding extra distant stops.\", \"estimated_cost\": \"$50-$180 per person\", \"transportation_note\": \"Use practical local transit, taxi, walking, or car depending on the destination.\", \"feasibility_note\": \"The plan is realistic because the day is limited to nearby or related stops.\"}], \"budget_summary\": \"The plan keeps costs aligned with the stated budget level, excluding flights and major lodging changes.\", \"backup_options\": [\"Cafe or indoor museum option\", \"Flexible neighborhood walk\"], \"travel_tips\": [\"Check opening hours before visiting.\", \"Leave time buffers for transit.\", \"Keep weather-dependent activities flexible.\"]}",
+        "input": {
+          "destination": "Haifa",
+          "trip_length_days": 2,
+          "travelers": "couple",
+          "budget_level": "medium",
+          "interests": [
+            "beaches",
+            "views",
+            "relaxation"
+          ],
+          "pace": "medium",
+          "constraints": [
+            "keep the schedule realistic",
+            "do not add places outside the provided list"
+          ],
+          "selected_places": [
+            "Baha'i Gardens",
+            "German Colony",
+            "Stella Maris",
+            "Carmel Center"
+          ],
+          "route_groups": {
+            "Day 1": [
+              "Baha'i Gardens",
+              "Stella Maris"
+            ],
+            "Day 2": [
+              "German Colony",
+              "Carmel Center"
+            ]
+          }
+        }
+      },
+      {
+        "json_valid": true,
+        "schema_complete": false,
+        "day_count_correct": false,
+        "per_day_complete": true,
+        "no_extra_places_in_themes": true,
+        "extra_places_in_themes": [],
+        "latency_s": 6.7430009841918945,
+        "generated": "```json\n{\n  \"itinerary\": {\n    \"Day 1\": {\n      \"morning\": {\n        \"activity\": \"Visit Nyhavn\",\n        \"description\": \"Explore the colorful buildings and enjoy a leisurely walk along the water.\"\n      },\n      \"afternoon\": {\n        \"activity\": \"Lunch at Torvehallerne\",\n        \"description\": \"Sample local cuisine from various food stalls and enjoy the lively atmosphere.\"\n      },\n      \"evening\": {\n        \"activity\": \"Stroll through the area around Torvehallerne\",\n        \"description\": \"Relax by the harbor or visit one of the nearby cafes for a drink.\"\n      }\n    },\n    \"Day 2\": {\n      \"morning\": {\n        \"activity\": \"Enjoy a relaxed morning at Tivoli Gardens\",\n        \"description\": \"Take a leisurely stroll through the gardens and enjoy some rides if you wish.\"\n      },\n      \"afternoon\": {\n        \"activity\": \"Explore the streets of Christianshavn\",\n        \"description\": \"Discover the charming canalside area with its historic architecture and boutiques.\"\n      },\n      \"evening\": {\n        \"activity\": \"Dinner at a local restaurant\",\n        \"description\": \"Experience Danish cuisine in a cozy setting.\"\n      }\n    },\n    \"Day 3\": {\n      \"morning\": {\n        \"activity\": \"Visit Rosenborg Castle\",\n        \"description\": \"Explore the castle and its beautiful gardens.\"\n      },\n      \"afternoon\": {\n        \"activity\": \"Visit Designmuseum Denmark\",\n        \"description\": \"Discover contemporary design and architecture in this modern museum.\"\n      },\n      \"evening\": {\n        \"activity\": \"Relax in a local park or by the waterfront\",\n        \"description\": \"End your trip with a peaceful evening, enjoying the scenery and perhaps a final meal out.\"\n      }\n    }\n  }\n}\n```",
+        "gold": "{\"trip_summary\": \"A 3-day Copenhagen itinerary focused on beaches, relaxation, food.\", \"daily_itinerary\": [{\"day\": 1, \"theme\": \"Nyhavn + Torvehallerne\", \"morning\": \"Start with Nyhavn at a comfortable pace.\", \"afternoon\": \"Continue with Torvehallerne.\", \"evening\": \"Have dinner nearby and keep the evening flexible.\", \"estimated_cost\": \"$50-$180 per person\", \"transportation_note\": \"Use the most practical local transportation and leave time buffers.\", \"feasibility_note\": \"This day is realistic because the main stops are limited and grouped by area.\"}, {\"day\": 2, \"theme\": \"Tivoli Gardens + Christianshavn\", \"morning\": \"Start with Tivoli Gardens at a comfortable pace.\", \"afternoon\": \"Continue with Christianshavn.\", \"evening\": \"Have dinner nearby and keep the evening flexible.\", \"estimated_cost\": \"$50-$180 per person\", \"transportation_note\": \"Use the most practical local transportation and leave time buffers.\", \"feasibility_note\": \"This day is realistic because the main stops are limited and grouped by area.\"}, {\"day\": 3, \"theme\": \"Rosenborg Castle + Designmuseum Denmark\", \"morning\": \"Start with Rosenborg Castle at a comfortable pace.\", \"afternoon\": \"Continue with Designmuseum Denmark.\", \"evening\": \"Have dinner nearby and keep the evening flexible.\", \"estimated_cost\": \"$50-$180 per person\", \"transportation_note\": \"Use the most practical local transportation and leave time buffers.\", \"feasibility_note\": \"This day is realistic because the main stops are limited and grouped by area.\"}], \"budget_summary\": \"This itinerary is designed for a low budget excluding flights and major lodging variations.\", \"backup_options\": [\"Indoor museum or cafe option\", \"Flexible neighborhood walk\"], \"travel_tips\": [\"Check current opening hours before visiting.\", \"Leave buffer time for transportation and weather.\", \"Book popular activities in advance when needed.\"]}",
+        "input": {
+          "destination": "Copenhagen",
+          "trip_length_days": 3,
+          "travelers": "couple",
+          "budget_level": "low",
+          "interests": [
+            "beaches",
+            "relaxation",
+            "food",
+            "scenery"
+          ],
+          "pace": "relaxed",
+          "constraints": [
+            "follow user constraints",
+            "keep the schedule realistic"
+          ],
+          "selected_places": [
+            "Nyhavn",
+            "Tivoli Gardens",
+            "Rosenborg Castle",
+            "Torvehallerne",
+            "Christianshavn",
+            "Designmuseum Denmark"
+          ],
+          "route_groups": {
+            "Day 1": [
+              "Nyhavn",
+              "Torvehallerne"
+            ],
+            "Day 2": [
+              "Tivoli Gardens",
+              "Christianshavn"
+            ],
+            "Day 3": [
+              "Rosenborg Castle",
+              "Designmuseum Denmark"
+            ]
+          }
+        }
+      },
+      {
+        "json_valid": true,
+        "schema_complete": false,
+        "day_count_correct": false,
+        "per_day_complete": true,
+        "no_extra_places_in_themes": true,
+        "extra_places_in_themes": [],
+        "latency_s": 4.256529092788696,
+        "generated": "```json\n{\n  \"itinerary\": {\n    \"Day 1\": {\n      \"morning\": {\n        \"activity\": \"Visit Al Mughsail Beach\",\n        \"description\": \"Relax on the sandy shores of Al Mughsail Beach, known for its clear waters and scenic views.\",\n        \"duration\": \"4 hours\"\n      },\n      \"afternoon\": {\n        \"activity\": \"Explore Al Baleed Archaeological Park\",\n        \"description\": \"Discover the ruins of the ancient city of Al Baleed, a UNESCO World Heritage Site.\",\n        \"duration\": \"3 hours\"\n      }\n    },\n    \"Day 2\": {\n      \"morning\": {\n        \"activity\": \"Explore Wadi Darbat\",\n        \"description\": \"Hike through the lush Wadi Darbat, enjoying the natural beauty and wildlife of the area.\",\n        \"duration\": \"5 hours\"\n      }\n    },\n    \"Day 3\": {\n      \"morning\": {\n        \"activity\": \"Visit Sultan Qaboos Mosque\",\n        \"description\": \"Admire the architectural beauty of the Sultan Qaboos Mosque, one of the largest mosques in the world.\",\n        \"duration\": \"2 hours\"\n      }\n    }\n  }\n}\n```",
+        "gold": "{\"trip_summary\": \"A 3-day Salalah itinerary based only on the selected places and user constraints.\", \"daily_itinerary\": [{\"day\": 1, \"theme\": \"Al Mughsail Beach and Al Baleed Archaeological Park\", \"morning\": \"Start with Al Mughsail Beach and keep the pace comfortable.\", \"afternoon\": \"Continue with Al Baleed Archaeological Park.\", \"evening\": \"Have dinner nearby and avoid adding extra distant stops.\", \"estimated_cost\": \"$50-$180 per person\", \"transportation_note\": \"Use practical local transit, taxi, walking, or car depending on the destination.\", \"feasibility_note\": \"The plan is realistic because the day is limited to nearby or related stops.\"}, {\"day\": 2, \"theme\": \"Wadi Darbat\", \"morning\": \"Start with Wadi Darbat and keep the pace comfortable.\", \"afternoon\": \"Continue with nearby food, rest, or flexible exploration.\", \"evening\": \"Have dinner nearby and avoid adding extra distant stops.\", \"estimated_cost\": \"$50-$180 per person\", \"transportation_note\": \"Use practical local transit, taxi, walking, or car depending on the destination.\", \"feasibility_note\": \"The plan is realistic because the day is limited to nearby or related stops.\"}, {\"day\": 3, \"theme\": \"Sultan Qaboos Mosque\", \"morning\": \"Start with Sultan Qaboos Mosque and keep the pace comfortable.\", \"afternoon\": \"Continue with nearby food, rest, or flexible exploration.\", \"evening\": \"Have dinner nearby and avoid adding extra distant stops.\", \"estimated_cost\": \"$50-$180 per person\", \"transportation_note\": \"Use practical local transit, taxi, walking, or car depending on the destination.\", \"feasibility_note\": \"The plan is realistic because the day is limited to nearby or related stops.\"}], \"budget_summary\": \"The plan keeps costs aligned with the stated budget level, excluding flights and major lodging changes.\", \"backup_options\": [\"Cafe or indoor museum option\", \"Flexible neighborhood walk\"], \"travel_tips\": [\"Check opening hours before visiting.\", \"Leave time buffers for transit.\", \"Keep weather-dependent activities flexible.\"]}",
+        "input": {
+          "destination": "Salalah",
+          "trip_length_days": 3,
+          "travelers": "couple",
+          "budget_level": "medium",
+          "interests": [
+            "beaches",
+            "views",
+            "relaxation"
+          ],
+          "pace": "medium",
+          "constraints": [
+            "keep the schedule realistic",
+            "do not add places outside the provided list"
+          ],
+          "selected_places": [
+            "Al Mughsail Beach",
+            "Wadi Darbat",
+            "Sultan Qaboos Mosque",
+            "Al Baleed Archaeological Park"
+          ],
+          "route_groups": {
+            "Day 1": [
+              "Al Mughsail Beach",
+              "Al Baleed Archaeological Park"
+            ],
+            "Day 2": [
+              "Wadi Darbat"
+            ],
+            "Day 3": [
+              "Sultan Qaboos Mosque"
+            ]
+          }
+        }
+      }
+    ],
+    "aggregate": {
+      "json_valid": 0.9,
+      "schema_complete": 0.0,
+      "day_count_correct": 0.0,
+      "per_day_complete": 0.9,
+      "no_extra_places_in_themes": 0.9,
+      "avg_latency_s": 6.950804400444031,
+      "n": 10
+    }
+  }
+}

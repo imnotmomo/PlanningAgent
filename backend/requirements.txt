@@ -1,0 +1,6 @@
+openai>=1.50
+fastapi>=0.115
+uvicorn[standard]>=0.30
+pydantic>=2.8
+python-dotenv>=1.0
+# tools.py uses urllib.request from stdlib for Tavily, no requests dep needed.

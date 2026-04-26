@@ -1,0 +1,33 @@
+{
+  "base_model": "Qwen/Qwen2.5-7B-Instruct",
+  "lora": {
+    "r": 16,
+    "alpha": 32,
+    "dropout": 0.05,
+    "target_modules": [
+      "q_proj",
+      "k_proj",
+      "v_proj",
+      "o_proj"
+    ]
+  },
+  "training": {
+    "epochs": 3,
+    "per_device_batch_size": 2,
+    "grad_accum": 4,
+    "world_size": 2,
+    "effective_batch": 16,
+    "lr": 0.0002,
+    "warmup_ratio": 0.05,
+    "scheduler": "cosine",
+    "max_seq_length": 2048,
+    "precision": "bf16"
+  },
+  "data": {
+    "file": "travel_finetune_examples_1_200.jsonl",
+    "train_size": 190,
+    "eval_size": 10,
+    "seed": 42
+  },
+  "elapsed_seconds": 63.12547254562378
+}
