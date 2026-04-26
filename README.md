@@ -376,40 +376,113 @@ Given structured trip preferences + selected places + per-day route groups, prod
 
 The fine-tune was scoped narrowly: **JSON shape consistency**. Hotels, real budget, lunch/dinner names, transit chains, multi-destination day numbering, and budget tiering are all produced by orchestrator agents and stitched on top in the UI — the LoRA's only job is the day-by-day narrative skeleton in the right structure.
 
-### Training
+### Training environment
 
-- **Base model:** `Qwen/Qwen2.5-7B-Instruct`
-- **Method:** bf16 LoRA (no QLoRA / no 4-bit), `r=16`, `alpha=32`, `dropout=0.05`, `target_modules=[q_proj, k_proj, v_proj, o_proj]`
-- **Optimizer:** AdamW, `lr=2e-4`, cosine schedule, 5% warmup
-- **Batch:** per_device=2 × grad_accum=4 × world_size=2 = effective 16
-- **Epochs:** 3 (~36 update steps over 189 train + 10 eval)
-- **Hardware:** 2× RTX 5090 (DDP via `torchrun --nproc_per_node=2`)
-- **Wall-clock:** **63.1 s**
-- **Final losses:** train **0.26**, eval **0.26** (started 1.96 / 1.07)
+Provisioned on Vast.ai for training only; the trained adapter is portable.
 
-### Data
+| | |
+|---|---|
+| GPUs | 2× NVIDIA RTX 5090, 32 GB GDDR7 each (sm_120 Blackwell) |
+| GPU driver | 580.x (any CUDA 12.8+ driver works) |
+| CUDA runtime | 12.8 (`torch==2.10.0+cu128`) |
+| Python | 3.12 (Vast.ai PyTorch image, `/venv/main`) |
+| Libraries | `transformers==4.57.6`, `peft==0.19.1`, `trl==1.2.0`, `datasets==4.8.4`, `accelerate==1.13.0` |
+| HF cache | `HF_HOME=/workspace/.hf_home` (Vast.ai's writable workspace volume; the overlay `/` is only 32 GB so the 14 GB base model goes to workspace) |
+| `ulimit -n` | bumped to `65536` before launch (Tavily/HF tokenizer use Rayon and exhaust the default 1024 fd limit under DDP) |
+| Distributed launch | `torchrun --nproc_per_node=2` (DDP, no DeepSpeed) |
+| Wall-clock end-to-end | **~63 seconds** of training + ~30 s setup |
 
-`travel_finetune_examples_1_200.jsonl` — 199 chat-format examples mapping structured trip constraints + selected places + route groups to the JSON itinerary above. Filename says 200 but the file has 199 lines (one missing — kept as-is).
+We chose **plain bf16 LoRA** instead of QLoRA: the 7B base in bf16 is ~14 GB,
+which fits comfortably on a single 32 GB 5090 alongside the LoRA adapter,
+gradients, and activations. QLoRA's 4-bit quantization adds noise without
+saving meaningful memory at this scale.
 
-The assistant outputs in this dataset are **templated** (recurring boilerplate phrasing across days). The LoRA learns the schema cleanly but inherits the prose template; this is the dataset bottleneck, not a training one. Re-training on the same data would reproduce the same templated prose.
+### Training data
 
-### How to retrain
+`travel_finetune_examples_1_200.jsonl` — 199 chat-format examples mapping
+structured trip constraints + selected places + route groups to the JSON
+itinerary above.
 
-```bash
-# from a host with 2× GPUs, 32GB+ each, CUDA 12.x driver
-cd /path/to/repo
-pip install -r requirements.txt          # torch, transformers, peft, trl, datasets, accelerate
-torchrun --nproc_per_node=2 train.py     # uses train.py:MODEL_NAME and DATA_FILE
-# outputs land in ./tripwise-itinerary-lora/
-python eval.py                           # held-out 10-example eval (fine-tuned vs base)
-python report.py                         # writes report.md from trainer_state + eval_results
-```
+Each line is one chat-completion training example with three messages:
+`system` (the locked itinerary-agent prompt), `user` (a JSON dict of
+preferences + selected_places + route_groups), and `assistant` (the
+target itinerary JSON).
 
-`train.py` env-var hooks: set `RAYON_NUM_THREADS=1`, `TOKENIZERS_PARALLELISM=false`, raise `ulimit -n` to avoid Rayon thread-pool issues on small `nofile` limits.
+The assistant outputs in this dataset are **templated** (recurring
+boilerplate phrasing across days). The LoRA learns the schema cleanly but
+inherits the prose template; this is the dataset bottleneck, not a training
+one. Re-training on the same data would reproduce the same templated prose.
+
+### Training process
+
+`train.py` is the single end-to-end training script. Per epoch it:
+
+1. **Loads the base model** `Qwen/Qwen2.5-7B-Instruct` in bf16 onto each rank's GPU (`device_map={"": LOCAL_RANK}` under DDP, `"auto"` standalone).
+2. **Loads the dataset**, shuffles with `seed=42`, and splits 189 train / 10 eval. The 10 held-out examples are also dumped to `tripwise-itinerary-lora/eval_examples.jsonl` so `eval.py` uses an identical split.
+3. **Wraps the model with PEFT LoRA** (`r=16`, `alpha=32`, `dropout=0.05`, `target_modules=["q_proj","k_proj","v_proj","o_proj"]`, `bias="none"`).
+4. **Runs SFT via `trl.SFTTrainer`** with `SFTConfig`:
+   - `num_train_epochs=3`
+   - `per_device_train_batch_size=2`, `gradient_accumulation_steps=4` → effective batch **16** (= 2×4×2 GPUs)
+   - `gradient_checkpointing=True` (use_reentrant=False) — fits with bf16 + LoRA in <30 GB/GPU
+   - `learning_rate=2e-4`, `lr_scheduler_type="cosine"`, `warmup_ratio=0.05`
+   - `max_length=2048`, `packing=False`
+   - `logging_steps=2`, `eval_strategy="steps"`, `eval_steps=10`, `save_steps=20`
+5. **Saves the LoRA** (only the adapter weights — ~40 MB safetensors, not the full model) and tokenizer to `./tripwise-itinerary-lora/` along with `trainer_state.json` (loss curves) and a custom `metadata.json` (hyperparams + elapsed time).
+6. **Total wall-clock: ~63 s** for 3 epochs over 189 examples.
+
+#### Loss trajectory
+
+| step | train_loss | eval_loss |
+|---:|---:|---:|
+| 2 | 1.960 | — |
+| 10 | 1.237 | **1.068** |
+| 20 | 0.555 | **0.471** |
+| 30 | 0.267 | **0.275** |
+| 36 | 0.263 | **0.260** |
+
+Token-accuracy on train climbs from 66% → 94% over 36 steps. No overfitting
+(eval loss tracks train loss closely). Full curve in `report.md`.
 
 ### Evaluation
 
-Held-out 10 examples (deterministic split, seed=42), greedy decoding (`do_sample=False`):
+`eval.py` runs the LoRA against the same 10 held-out examples and compares
+to the unmodified base model.
+
+#### Methodology
+
+1. **Reload** `Qwen/Qwen2.5-7B-Instruct` in bf16, then attach the trained
+   LoRA via `PeftModel.from_pretrained`.
+2. For each held-out example:
+   - Apply the chat template (`apply_chat_template`) with the same locked
+     system prompt + the example's user JSON.
+   - Generate with **greedy decoding** (`do_sample=False`,
+     `max_new_tokens=1024`) — schema metrics need to be deterministic.
+   - Extract the first balanced `{...}` block from the output (handles
+     models that prepend or append text around the JSON).
+3. Score the parsed object on five hard metrics + latency.
+4. **Tear down** the model, free GPU memory, **reload the base alone** (no
+   adapter), and repeat the loop. Same prompts, same decoding, same scoring
+   — so the comparison is apples-to-apples.
+5. Save `eval_output/eval_results.json` with per-example outputs (gold,
+   generated, all flags) and aggregate metrics for both runs.
+
+`report.py` then reads `tripwise-itinerary-lora/trainer_state.json` and
+`eval_output/eval_results.json` to render `report.md`.
+
+#### Metric definitions
+
+| Metric | Definition |
+|---|---|
+| `json_valid` | the extracted block parses as JSON (no syntax errors) |
+| `schema_complete` | all of `{trip_summary, daily_itinerary, budget_summary, backup_options, travel_tips}` present at the top level |
+| `day_count_correct` | `len(daily_itinerary) == trip_length_days` |
+| `per_day_complete` | every day dict has `{day, theme, morning, afternoon, evening, estimated_cost, transportation_note, feasibility_note}` |
+| `no_extra_places_in_themes` | day themes only mention places from the input `selected_places` (heuristic — capitalized-word match) |
+| `avg_latency_s` | mean greedy generation time per example |
+
+#### Results
+
+10 held-out examples, greedy decoding, seed=42:
 
 | Metric | Fine-tuned | Base (Qwen2.5-7B-Instruct) |
 |---|---:|---:|
@@ -418,11 +491,44 @@ Held-out 10 examples (deterministic split, seed=42), greedy decoding (`do_sample
 | `day_count_correct` | **1.000** | **0.000** |
 | `per_day_complete` | 1.000 | 0.900 |
 | `no_extra_places_in_themes` | 0.900 | 0.900 |
-| avg generation latency | ~11 s | ~7 s |
+| `avg_latency_s` | ~11 s | ~7 s |
 
-The fine-tune is doing the one thing it was scoped to: **schema and day-count compliance**. Base Qwen produces a perfectly fine-sounding travel plan in *its own* schema; the LoRA produces our schema reliably so downstream code can render it.
+The fine-tune is doing the one thing it was scoped to: **schema and
+day-count compliance**. Base Qwen produces a perfectly fine-sounding travel
+plan in *its own* schema (e.g. `{itinerary: {Day 1: {morning: {activity,
+description}, …}}}`); the LoRA produces *our* schema reliably so downstream
+code can render it without parser hacks.
 
-Full per-example outputs in `eval_output/eval_results.json`, full writeup in `report.md`.
+Full per-example outputs (gold + base + fine-tuned generations) in
+[`eval_output/eval_results.json`](eval_output/eval_results.json), full
+human-readable writeup in [`report.md`](report.md).
+
+### How to retrain
+
+On a host with the environment described above:
+
+```bash
+cd /path/to/repo
+pip install -r requirements.txt
+ulimit -n 65536
+export RAYON_NUM_THREADS=1 TOKENIZERS_PARALLELISM=false HF_HOME=/workspace/.hf_home
+
+# train (~63 s on 2× RTX 5090):
+torchrun --nproc_per_node=2 train.py
+# adapter, tokenizer, eval split, metadata, trainer_state.json all land in
+# ./tripwise-itinerary-lora/
+
+# evaluate fine-tuned vs base on 10 held-out examples:
+python eval.py
+# writes eval_output/eval_results.json
+
+# render the markdown report:
+python report.py
+# writes report.md
+```
+
+If single-GPU (no DDP), drop `torchrun` — the script auto-detects
+`WORLD_SIZE` and falls back to standalone with `device_map="auto"`.
 
 ### How to use the LoRA in your own project
 
