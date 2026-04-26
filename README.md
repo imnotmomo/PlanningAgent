@@ -250,62 +250,65 @@ LLM and the tools it can call.
                                    │ selections.{places,restaurants,hotels,
                                    │             arrival_choices.{outbound,return}}
                                    ▼
-                  ┌────────────────────────────────────────┐
-                  │ route_agent (per leg)                  │ → Qwen3.5-9B-MLX-4bit  ·  no tools
-                  │ inputs:                                │
-                  │   - attractions {priority, optional}   │
-                  │   - restaurants {priority, optional}   │
-                  │   - hotel_name (from selections)       │
-                  │   - pace, interests, budget_level      │
-                  │   - feedback (only on replan)          │
-                  └────────────┬───────────────────────────┘
-                       route_groups (attraction stops/day)
-                       meal_plan {Day N: {lunch, dinner}}
-                       transit_notes {Day N: "hotel→stops→hotel"}
-                                   │
-                                   ▼
-                  ┌────────────────────────────────────────┐
-                  │ budget_agent                           │ → Qwen3.5-9B-MLX-4bit  ·  tavily
-                  │ inputs:                                │
-                  │   - prefs, selected_places             │
-                  │   - arrival (with computed_airfare      │
-                  │     from user's flight picks, if any)  │
-                  │ output buckets {hotel,transit,         │
-                  │   meals,attractions}, airfare {low,high}│
-                  │ → backend sums into                    │
-                  │   daily_estimate, airfare_estimate,    │
-                  │   total_estimate                       │
-                  └────────────┬───────────────────────────┘
-                                   │
-                                   ▼
-                  ┌────────────────────────────────────────┐
-                  │ itinerary_agent (per leg)              │ → vLLM
-                  │ inputs:                                │   Qwen2.5-7B-Instruct
-                  │   - city_prefs (per-leg)               │   + tripwise LoRA
-                  │   - selected (places + meal_names)     │   no tools
-                  │   - route_groups (this leg)            │
-                  │ output: {trip_summary, daily_itinerary,│
-                  │   budget_summary, backup_options,      │
-                  │   travel_tips}                         │
-                  └────────────┬───────────────────────────┘
-                       per-leg results truncated to leg.days
-                       day numbers re-offset across legs
-                                   │
-                                   ▼
-                  ┌────────────────────────────────────────┐
-                  │ critic_agent                           │ → Qwen3.5-9B-MLX-4bit  ·  no tools
-                  │ inputs: full itinerary, prefs          │
-                  │ output: {score 0-10, passed,           │
-                  │   issues, suggested_revisions}         │
-                  └────────────┬───────────────────────────┘
-                       │
-                       ├── score >= 7 ──► complete event
-                       │
-                       └── score < 7 (and retries < 2) ──► replan loop:
-                                rerun route_agent (with critic feedback)
-                                rerun itinerary_agent
-                                rerun critic_agent
-                                back to score-check
+      ┌──────────── replan loop (max 2 retries) ────────────┐
+      │  ▼ feedback = critic.issues + critic.suggested_revisions
+      │
+      │  ┌────────────────────────────────────────┐
+      │  │ route_agent (per leg)             ◄── REPLAN entry point
+      │  │ inputs:                                │ → Qwen3.5-9B-MLX-4bit  ·  no tools
+      │  │   - attractions {priority, optional}   │
+      │  │   - restaurants {priority, optional}   │
+      │  │   - hotel_name (from selections)       │
+      │  │   - pace, interests, budget_level      │
+      │  │   - feedback ◄─── (set on replan only) │
+      │  └────────────┬───────────────────────────┘
+      │       route_groups (attraction stops/day)
+      │       meal_plan {Day N: {lunch, dinner}}
+      │       transit_notes {Day N: "hotel→stops→hotel"}
+      │                   │
+      │                   ▼
+      │  ┌────────────────────────────────────────┐
+      │  │ budget_agent       (NOT re-run on replan)
+      │  │ inputs:                                │ → Qwen3.5-9B-MLX-4bit  ·  tavily
+      │  │   - prefs, selected_places             │
+      │  │   - arrival (with computed_airfare     │
+      │  │     from user's flight picks, if any)  │
+      │  │ output buckets {hotel,transit,         │
+      │  │   meals,attractions}, airfare {low,high}
+      │  │ → backend sums into                    │
+      │  │   daily_estimate, airfare_estimate,    │
+      │  │   total_estimate                       │
+      │  └────────────┬───────────────────────────┘
+      │                   │
+      │                   ▼
+      │  ┌────────────────────────────────────────┐
+      │  │ itinerary_agent (per leg)         ◄── REPLAN entry point
+      │  │ inputs:                                │ → vLLM
+      │  │   - city_prefs (per-leg)               │   Qwen2.5-7B-Instruct
+      │  │   - selected (places + meal_names)     │   + tripwise LoRA
+      │  │   - route_groups (this leg)            │   no tools
+      │  │ output: {trip_summary, daily_itinerary,│
+      │  │   budget_summary, backup_options,      │
+      │  │   travel_tips}                         │
+      │  └────────────┬───────────────────────────┘
+      │       per-leg results truncated to leg.days
+      │       day numbers re-offset across legs
+      │                   │
+      │                   ▼
+      │  ┌────────────────────────────────────────┐
+      │  │ critic_agent                      ◄── REPLAN entry point
+      │  │ inputs: full itinerary, prefs          │ → Qwen3.5-9B-MLX-4bit  ·  no tools
+      │  │ output: {score 0-10, passed,           │
+      │  │   issues, suggested_revisions}         │
+      │  └────────────┬───────────────────────────┘
+      │               │
+      │               ├── score >= 7 ──► complete event
+      │               │
+      └───────────────┴── score < 7 AND retries < 2:
+                          retry_round += 1
+                          loop back to route_agent (with feedback)
+                          → itinerary_agent → critic_agent
+                          (budget_agent skipped on replan)
 
            ┌──────────────────────────────────────────────────────┐
            │ /revise (separate endpoint, post-completion)         │ → Qwen3.5-9B-MLX-4bit
