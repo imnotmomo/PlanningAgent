@@ -2,7 +2,14 @@
 
 A multi-agent travel planning assistant. Free-form trip request goes in (e.g. "5 days in Japan from San Francisco, 2 friends, medium budget, anime + food + city views"); a structured day-by-day itinerary, real candidate places/restaurants/hotels, round-trip flight options, and an all-in budget come out.
 
-The itinerary-generation step is a **fine-tuned LoRA** on top of Qwen 2.5-7B-Instruct, scoped to one job: produce schema-conformant JSON for the day-by-day plan. Everything else (preference extraction, web-grounded research, route + meal + transit planning, budget arithmetic, multi-destination handling, critic-driven replanning) is done by orchestrator agents calling a general LLM (local MLX server or any OpenAI-compatible API).
+The current setup uses **two Qwen models** running side by side:
+
+| Role | Model | Where it runs | Used by |
+|---|---|---|---|
+| **Orchestrator** | `Qwen3.5-9B-MLX-4bit` | Local MLX server on the Mac at `http://localhost:5620/v1` | Preference, Missing-info, Destination-suggester, Arrival, Research, Route, Budget, Critic, Revision agents (everything except Itinerary) |
+| **Itinerary** | `Qwen/Qwen2.5-7B-Instruct` + `tripwise` LoRA (fine-tuned in this repo) | vLLM / `serve_lora.py` on a CUDA host, OpenAI-compatible at `http://localhost:8001/v1` (SSH-tunneled if remote) | Itinerary agent only |
+
+Orchestration handles everything that needs world knowledge or tool use (Tavily web search, Python arithmetic). The fine-tuned itinerary model is scoped narrowly to one job: produce schema-conformant JSON for the day-by-day plan. The split lets us train a small, fast LoRA for structure consistency while still getting high-quality reasoning on the agentic side from a general MLX model — without paying any API.
 
 ## What's in this repo
 
@@ -49,28 +56,40 @@ The itinerary-generation step is a **fine-tuned LoRA** on top of Qwen 2.5-7B-Ins
 └── tripwise_fine_tuning_plan.md      original fine-tuning plan + dataset spec
 ```
 
-## Quick start
+## Setup
 
-You'll need three things running locally:
+The tested setup is:
 
-1. **An OpenAI-compatible "orchestrator" model** (used by every non-itinerary agent).
-2. **The fine-tuned LoRA served behind an OpenAI-compatible endpoint** (used by the Itinerary agent).
-3. **A Tavily API key** for web search grounding (Research, Budget, Arrival agents).
+```
+   ┌──── frontend (Next.js)   localhost:3000
+   ├──── backend  (FastAPI)   localhost:8000
+   ├──── orchestrator LLM     localhost:5620      Qwen3.5-9B-MLX-4bit (MLX server, local Mac)
+   └──── itinerary LLM        localhost:8001      Qwen2.5-7B-Instruct + tripwise LoRA (vLLM/serve_lora.py)
+```
 
-Plus the backend (FastAPI) and the frontend (Next.js).
+Plus a Tavily API key for the web-search tool used by the Research, Budget and Arrival agents.
 
-### 1. Start the orchestrator LLM
+### 1. Orchestrator LLM — `Qwen3.5-9B-MLX-4bit` on MLX
 
-Two convenient options:
+Apple Silicon Mac, local. Use any MLX-LM-compatible server that exposes
+OpenAI's `/v1/chat/completions` and supports tool calling. The default
+`backend/.env` assumes the server is at `http://localhost:5620/v1` and the
+model id is `Qwen3.5-9B-MLX-4bit`.
 
-- **Local MLX server on Apple Silicon** — run any Qwen 3-class model (e.g. `Qwen3.5-9B-MLX-4bit`). The default `.env` assumes this is at `http://localhost:5620/v1`.
-- **OpenAI / OpenRouter / Anthropic / Together / etc.** — point `ORCH_BASE_URL` at any OpenAI-compatible API. Tool calling must be supported.
+The orchestrator handles **all non-itinerary agents**: preference extraction,
+arrival lookup, research (Tavily-grounded), route + meal + transit planning,
+budget bucket math, critic scoring, replan, and revision. It also drives the
+two tools (`tavily_search`, `python_exec`).
 
-Examples in `backend/.env.example`.
+You can swap to OpenAI / OpenRouter / Anthropic / Together / a local vLLM
+serving an open model — anything OpenAI-compatible with tool calling works.
+Just change `ORCH_BASE_URL`, `ORCH_API_KEY`, `ORCH_MODEL` in `backend/.env`.
 
-### 2. Serve the fine-tuned LoRA
+### 2. Itinerary LLM — `Qwen2.5-7B-Instruct` + `tripwise` LoRA
 
-The adapter in `tripwise-itinerary-lora/` is an LoRA on `Qwen/Qwen2.5-7B-Instruct`. You need the base model loaded with the adapter, behind an OpenAI-compatible endpoint.
+The adapter in `tripwise-itinerary-lora/` is a bf16 LoRA on
+`Qwen/Qwen2.5-7B-Instruct`. You serve the base + adapter behind an
+OpenAI-compatible endpoint at `http://localhost:8001/v1` (port is in `.env`).
 
 **Option A — vLLM (fastest, ~50 tok/s):**
 ```bash
@@ -82,19 +101,29 @@ CUDA_VISIBLE_DEVICES=0 vllm serve Qwen/Qwen2.5-7B-Instruct \
   --lora-modules tripwise=/path/to/tripwise-itinerary-lora
 ```
 
-**Option B — `serve_lora.py` (works on any CUDA driver, ~5–10 tok/s):**
+**Option B — `serve_lora.py` (any CUDA driver, ~5–10 tok/s):**
 ```bash
 CUDA_VISIBLE_DEVICES=0 HF_HOME=/some/dir \
   python serve_lora.py --port 8001
 ```
-This is a small FastAPI wrapper around `transformers` + `peft` that exposes the same `/v1/chat/completions` shape vLLM does. Use it when vLLM's prebuilt kernels don't match the host's CUDA toolchain (we hit this on a Vast.ai box with driver 570 vs vLLM 0.19's 12.9 kernels — `serve_lora.py` was the painless fallback).
+A small FastAPI wrapper around `transformers + peft` that exposes the same
+`/v1/chat/completions` shape vLLM does. Use this when vLLM's prebuilt CUDA
+kernels don't match the host's driver (we hit this on a Vast.ai box with
+driver 570 vs vLLM 0.19's CUDA-12.9 kernels — `serve_lora.py` was the
+painless fallback).
 
-If your GPU is remote (e.g. Vast.ai), tunnel the port:
+If the GPU is remote, tunnel the port from your Mac:
 ```bash
 ssh -L 8001:127.0.0.1:8001 user@gpu-host
 ```
 
-### 3. Backend
+### 3. Tavily
+
+Free key (1000 searches/month) at https://tavily.com — paste it into
+`backend/.env` as `TAVILY_API_KEY`. Used by Research, Budget, Arrival, and
+the candidate-detail endpoint.
+
+### 4. Backend (FastAPI)
 
 ```bash
 python -m venv .venv
@@ -104,24 +133,30 @@ cp backend/.env.example backend/.env       # then edit keys/URLs
 uvicorn backend.server:app --port 8000     # run from repo root
 ```
 
-`backend/.env` has placeholders for:
+`backend/.env` knobs:
 
-| Var | Purpose |
-|---|---|
-| `ORCH_BASE_URL` / `ORCH_API_KEY` / `ORCH_MODEL` | the orchestration LLM |
-| `ITIN_BASE_URL` / `ITIN_API_KEY` / `ITIN_MODEL` | the LoRA-loaded model (defaults `http://localhost:8001/v1` and `tripwise`) |
-| `TAVILY_API_KEY` | web search for Research / Budget / Arrival agents |
+| Var | Default | Notes |
+|---|---|---|
+| `ORCH_BASE_URL` | `http://localhost:5620/v1` | the local MLX endpoint |
+| `ORCH_API_KEY` | (server-token) | required header for the MLX server |
+| `ORCH_MODEL` | `Qwen3.5-9B-MLX-4bit` | model id the MLX server exposes |
+| `ITIN_BASE_URL` | `http://localhost:8001/v1` | vLLM / serve_lora.py endpoint |
+| `ITIN_API_KEY` | `dummy` | not validated (local) |
+| `ITIN_MODEL` | `tripwise` | LoRA module name (vLLM `--lora-modules tripwise=…`) |
+| `TAVILY_API_KEY` | `tvly-…` | Tavily key |
 
-### 4. Frontend
+### 5. Frontend (Next.js)
 
 ```bash
 cd frontend
-cp .env.example .env.local                  # set NEXT_PUBLIC_API_URL if you want
+cp .env.example .env.local                  # set NEXT_PUBLIC_API_URL if needed
 npm install
 npm run dev                                 # http://localhost:3000
 ```
 
-The frontend's lib/api.ts uses `NEXT_PUBLIC_API_URL` for direct CORS calls when set; otherwise falls back to the `/api/*` rewrite proxy in `next.config.mjs`. Backend CORS allows `localhost:3000` by default.
+`frontend/lib/api.ts` uses `NEXT_PUBLIC_API_URL` for direct CORS calls when
+set; otherwise it falls back to the `/api/*` rewrite proxy in
+`next.config.mjs`. Backend CORS allows `localhost:3000` by default.
 
 ## Architecture
 
@@ -139,10 +174,10 @@ Browser  ─────────►  Next.js (3000)  ──fetch──►  F
                                                       │
                           ┌────────────────┬──────────┴──────────┬──────────────────┐
                           ▼                ▼                     ▼                  ▼
-                  Orchestrator LLM   Tavily web       Python subprocess     Itinerary LLM
-                  (MLX / OpenAI /    search                                  Qwen2.5-7B
-                   any compat API)                                          + tripwise LoRA
-                                                                            (vLLM or serve_lora.py)
+                Qwen3.5-9B-MLX-4bit   Tavily web      Python subprocess     Qwen2.5-7B-Instruct
+                MLX server :5620      search          (python_exec tool)    + tripwise LoRA
+                (orchestration)                                              vLLM/serve_lora.py :8001
+                                                                             (itinerary only)
 ```
 
 ### Multi-agent pipeline
@@ -161,6 +196,146 @@ Browser  ─────────►  Next.js (3000)  ──fetch──►  F
 | | replan loop | rerun route + itinerary + critic | up to 2 retries when score < 7 |
 | `/revise` | `revision_agent` | none | applies a user "make it more relaxed"-style edit |
 | `/candidate-detail` | tavily detailed | tavily (with images) | extra info + photos for one candidate |
+
+### Dependency graph
+
+Solid arrows are required inputs; dotted arrows are conditional (the step
+only runs when its precondition is met). Each agent box shows its target
+LLM and the tools it can call.
+
+```
+                                user_request
+                                      │
+                                      ▼
+                       ┌──────────────────────────────┐
+                       │ preference_agent             │  → Qwen3.5-9B-MLX-4bit  ·  no tools
+                       └──────────────┬───────────────┘
+                                      │ prefs (destinations[], country_or_region,
+                                      │        origin, trip_length_days,
+                                      │        budget_level, pace, interests)
+                                      ▼
+                       ┌──────────────────────────────┐
+                       │ missing_info_agent           │  pure Python
+                       └──────────────┬───────────────┘
+                          missing? ───┴── yes ──► incomplete event, STOP
+                                      │ no
+                                      ▼
+              ┌──────────────────────────────────────────────────┐
+              │ destination_suggester_agent (only if              │ → Qwen3.5-9B-MLX-4bit
+              │   destinations==[] and country_or_region set)     │   no tools
+              └──────────────┬───────────────────────────────────┘
+                  candidates  │  default_split
+                              ▼
+                       [picker UI: user picks 1+ cities OR uses default_split]
+                              │ legs = [{city, country, days}, …]
+                              │
+                  ┌───────────┴───────────────────────────┐
+                  │                                       │
+                  ▼                                       ▼
+         ┌──────────────────┐               ┌─────────────────────────┐
+         │ arrival_agent    │ → Qwen3.5-9B-MLX-4bit         │ research_agent (per leg │ → Qwen3.5-9B-MLX-4bit
+         │ only if          │   tavily      │ in parallel via         │   tavily
+         │ prefs.origin     │               │ asyncio.gather)         │
+         └────────┬─────────┘               └────────────┬────────────┘
+            outbound_options                  places, restaurants, hotels
+            return_options                    (with descriptions, tagged by city)
+            (origin → first_city,                          │
+             last_city → origin)                           │
+                  │                                        │
+                  └────────────────┬───────────────────────┘
+                                   ▼
+                       [picker UI: candidate selection +
+                        flight choice (or "decide later")]
+                                   │
+                                   │ selections.{places,restaurants,hotels,
+                                   │             arrival_choices.{outbound,return}}
+                                   ▼
+                  ┌────────────────────────────────────────┐
+                  │ route_agent (per leg)                  │ → Qwen3.5-9B-MLX-4bit  ·  no tools
+                  │ inputs:                                │
+                  │   - attractions {priority, optional}   │
+                  │   - restaurants {priority, optional}   │
+                  │   - hotel_name (from selections)       │
+                  │   - pace, interests, budget_level      │
+                  │   - feedback (only on replan)          │
+                  └────────────┬───────────────────────────┘
+                       route_groups (attraction stops/day)
+                       meal_plan {Day N: {lunch, dinner}}
+                       transit_notes {Day N: "hotel→stops→hotel"}
+                                   │
+                                   ▼
+                  ┌────────────────────────────────────────┐
+                  │ budget_agent                           │ → Qwen3.5-9B-MLX-4bit  ·  tavily
+                  │ inputs:                                │
+                  │   - prefs, selected_places             │
+                  │   - arrival (with computed_airfare      │
+                  │     from user's flight picks, if any)  │
+                  │ output buckets {hotel,transit,         │
+                  │   meals,attractions}, airfare {low,high}│
+                  │ → backend sums into                    │
+                  │   daily_estimate, airfare_estimate,    │
+                  │   total_estimate                       │
+                  └────────────┬───────────────────────────┘
+                                   │
+                                   ▼
+                  ┌────────────────────────────────────────┐
+                  │ itinerary_agent (per leg)              │ → vLLM
+                  │ inputs:                                │   Qwen2.5-7B-Instruct
+                  │   - city_prefs (per-leg)               │   + tripwise LoRA
+                  │   - selected (places + meal_names)     │   no tools
+                  │   - route_groups (this leg)            │
+                  │ output: {trip_summary, daily_itinerary,│
+                  │   budget_summary, backup_options,      │
+                  │   travel_tips}                         │
+                  └────────────┬───────────────────────────┘
+                       per-leg results truncated to leg.days
+                       day numbers re-offset across legs
+                                   │
+                                   ▼
+                  ┌────────────────────────────────────────┐
+                  │ critic_agent                           │ → Qwen3.5-9B-MLX-4bit  ·  no tools
+                  │ inputs: full itinerary, prefs          │
+                  │ output: {score 0-10, passed,           │
+                  │   issues, suggested_revisions}         │
+                  └────────────┬───────────────────────────┘
+                       │
+                       ├── score >= 7 ──► complete event
+                       │
+                       └── score < 7 (and retries < 2) ──► replan loop:
+                                rerun route_agent (with critic feedback)
+                                rerun itinerary_agent
+                                rerun critic_agent
+                                back to score-check
+
+           ┌──────────────────────────────────────────────────────┐
+           │ /revise (separate endpoint, post-completion)         │ → Qwen3.5-9B-MLX-4bit
+           │ revision_agent: takes itinerary + change_request     │   no tools
+           │ Returns revised itinerary in same schema.            │
+           └──────────────────────────────────────────────────────┘
+
+           ┌──────────────────────────────────────────────────────┐
+           │ /candidate-detail (separate endpoint, picker modal)  │ → tavily
+           │ tavily_search_detailed: name + city → images +       │   (advanced
+           │ summary + sources                                    │    + images)
+           └──────────────────────────────────────────────────────┘
+```
+
+### Per-step dependency table
+
+| Step | Depends on | LLM | Tools |
+|---|---|---|---|
+| `preference_agent` | user request | Qwen3.5-9B-MLX-4bit | — |
+| `missing_info_agent` | preference output | (pure Python) | — |
+| `destination_suggester_agent` | preference output (when destinations empty) | Qwen3.5-9B-MLX-4bit | — |
+| `arrival_agent` | preference (origin), legs (first/last city) | Qwen3.5-9B-MLX-4bit | tavily |
+| `research_agent` | preference, one leg | Qwen3.5-9B-MLX-4bit | tavily |
+| `route_agent` | research, hotel pick, pace, budget, feedback? | Qwen3.5-9B-MLX-4bit | — |
+| `budget_agent` | route output, arrival (computed_airfare) | Qwen3.5-9B-MLX-4bit | tavily |
+| `itinerary_agent` | route_groups + selected places + city_prefs | Qwen2.5-7B + tripwise LoRA | — |
+| `critic_agent` | itinerary, prefs | Qwen3.5-9B-MLX-4bit | — |
+| replan loop | critic feedback | re-runs route + itinerary + critic | — |
+| `revision_agent` | existing itinerary + change request | Qwen3.5-9B-MLX-4bit | — |
+| `tavily_search_detailed` | candidate name + city | — | tavily (advanced + images) |
 
 ### Multi-destination support
 
@@ -307,7 +482,3 @@ SSE events:
 - The fine-tuned LoRA adapter is committed (~40 MB) since it has no PII.
 - The `travel_finetune_examples_1_200.jsonl` dataset is committed.
 - SSH keys, `.env` files, `node_modules`, `.next`, training checkpoints, and `.venv` are all excluded.
-
-## Original design docs
-
-For background and rationale see [`tripwise_project_plan.md`](tripwise_project_plan.md) and [`tripwise_fine_tuning_plan.md`](tripwise_fine_tuning_plan.md).
