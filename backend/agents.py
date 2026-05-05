@@ -796,10 +796,14 @@ Check for:
 - Rushed days (count attractions per day vs. pace: relaxed=1-2, medium=2-3,
   packed=3-4 — restaurants don't count toward this cap)
 - Places too far apart (geographic incoherence on the same day)
-- Budget alignment: compare `budget.total_estimate` against `prefs.budget_level`
-  (low ≈ <$120/day excl. airfare, medium ≈ $120-$300/day, high ≈ $300-$600/day,
-  luxury ≈ $600+/day). Don't flag the itinerary's `budget_summary` for being
-  short — totals come from `budget`, not the itinerary text.
+- Budget alignment: compare `budget.total_estimate` (and `daily_estimate`)
+  against `prefs.budget_level`. Per-day spend excluding airfare:
+    low     ≈ <$150/day
+    medium  ≈ $300-$500/day
+    high    ≈ $500-$800/day
+    luxury  ≈ $800+/day
+  Don't flag the itinerary's `budget_summary` for being short — totals come
+  from `budget`, not the itinerary text.
 - Unaddressed user interests
 - Missed constraints (transit preference, mobility, dietary, etc.)
 - Day-to-day flow problems (lodging changes, long transfers between cities)

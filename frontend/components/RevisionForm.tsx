@@ -2,7 +2,7 @@
 import { useState } from "react";
 
 interface RevisionFormProps {
-  onSubmit: (change: string) => void;
+  onSubmit: (change: string) => Promise<void> | void;
   disabled?: boolean;
 }
 
@@ -19,9 +19,12 @@ export function RevisionForm({ onSubmit, disabled }: RevisionFormProps) {
 
   return (
     <form
-      onSubmit={(e) => {
+      onSubmit={async (e) => {
         e.preventDefault();
-        if (text.trim()) onSubmit(text.trim());
+        const change = text.trim();
+        if (!change) return;
+        await onSubmit(change);
+        setText("");
       }}
       className="card-section p-2"
     >
