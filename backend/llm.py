@@ -38,12 +38,14 @@ orchestrator = AsyncOpenAI(base_url=ORCH_BASE_URL, api_key=ORCH_API_KEY)
 itinerary = AsyncOpenAI(base_url=ITIN_BASE_URL, api_key=ITIN_API_KEY)
 
 
-# Qwen3 thinking-mode suppression. The MLX server accepts it via extra_body;
-# Cerebras and similar strict providers reject unknown fields, so only send
-# it when the orchestrator model is actually a Qwen variant.
+# Suppress thinking-mode budget on reasoning models. Without this, gpt-oss
+# style models can spend the entire max_tokens budget reasoning and never
+# emit the actual answer; Qwen3 needs the chat-template flag instead.
 _IS_QWEN_ORCH = ORCH_MODEL.lower().startswith("qwen")
 NO_THINK_EXTRA: dict[str, Any] = (
-    {"chat_template_kwargs": {"enable_thinking": False}} if _IS_QWEN_ORCH else {}
+    {"chat_template_kwargs": {"enable_thinking": False}}
+    if _IS_QWEN_ORCH
+    else {"reasoning_effort": "low"}
 )
 
 
@@ -52,7 +54,7 @@ async def orch_complete(
     user: str,
     *,
     temperature: float = 0.0,
-    max_tokens: int = 2048,
+    max_tokens: int = 4096,
     response_format_json: bool = False,
 ) -> str:
     kwargs: dict[str, Any] = {"extra_body": NO_THINK_EXTRA}
@@ -78,7 +80,7 @@ async def orch_complete_with_tools(
     tools: list[dict],
     run_tool: Callable[[str, str], Awaitable[str]],
     temperature: float = 0.0,
-    max_tokens: int = 2048,
+    max_tokens: int = 4096,
     max_steps: int = 8,
     response_format_json: bool = False,
 ) -> str:
