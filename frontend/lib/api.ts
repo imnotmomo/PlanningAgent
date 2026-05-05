@@ -15,7 +15,9 @@ export type AgentName =
   | "route"
   | "budget"
   | "itinerary"
-  | "critic";
+  | "critic"
+  | "revision_router"
+  | "revision";
 
 export interface ResearchPayload {
   places: Candidate[];
@@ -50,13 +52,25 @@ export interface DestinationsComplete {
   suggester: DestinationSuggester | null;
 }
 
+export type ReviseCompletePayload = {
+  category: "text" | "structural" | "budget";
+  reason: string;
+  itinerary: Itinerary;
+  budget?: PlanResult["budget"];
+  route_groups?: Record<string, string[]>;
+  meal_plan?: Record<string, DayMeals>;
+  transit_notes?: Record<string, string>;
+  day_schedule?: Record<string, ScheduleEntry[]>;
+  critique?: PlanResult["critique"];
+};
+
 export type StreamEvent =
   | { event: "started"; payload: { request?: string; phase?: string } }
   | { event: "step"; payload: { name: AgentName; status: "running" | "done"; output?: unknown; is_retry?: boolean; retry_round?: number } }
   | { event: "destinations_complete"; payload: DestinationsComplete }
   | { event: "research_complete"; payload: ResearchComplete }
   | { event: "incomplete"; payload: { missing_fields: string[]; preferences: Record<string, unknown> } }
-  | { event: "complete"; payload: PlanResult }
+  | { event: "complete"; payload: PlanResult | ReviseCompletePayload }
   | { event: "error"; payload: { type: string; message: string; trace?: string } };
 
 export interface Selections {
@@ -250,15 +264,15 @@ export async function fetchCandidateDetail(
   return res.json();
 }
 
-export async function reviseItinerary(
-  itinerary: Itinerary,
-  change: string
-): Promise<Itinerary> {
+export async function* streamRevise(
+  result: PlanResult,
+  change: string,
+): AsyncGenerator<StreamEvent> {
   const res = await fetch(apiUrl("/revise"), {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ itinerary, change }),
+    headers: { "Content-Type": "application/json", Accept: "text/event-stream" },
+    body: JSON.stringify({ result, change }),
+    cache: "no-store",
   });
-  if (!res.ok) throw new Error(`HTTP ${res.status}`);
-  return res.json();
+  yield* parseSSE(res);
 }

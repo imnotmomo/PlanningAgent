@@ -16,7 +16,7 @@ import {
   streamDestinations,
   streamResearch,
   streamBuild,
-  reviseItinerary,
+  streamRevise,
   Itinerary,
 } from "@/lib/api";
 import { DestinationPicker } from "@/components/DestinationPicker";
@@ -212,12 +212,42 @@ export default function Page() {
   const applyRevision = async (change: string) => {
     if (!result) return;
     setPhase("revising");
+    // Reset prior agent statuses so the revision pipeline shows fresh steps
+    setSteps(new Map());
+    setShowPipeline(true);
     try {
-      const revised: Itinerary = await reviseItinerary(result.itinerary, change);
-      const nextResult = { ...result, itinerary: revised };
-      setResult(nextResult);
-      setPhase("done");
-      persist("done", { result: nextResult });
+      let nextResult = result;
+      for await (const ev of streamRevise(result, change)) {
+        if (ev.event === "step") handleStepEvent(ev as never);
+        else if (ev.event === "complete") {
+          const p = ev.payload as {
+            category?: string;
+            itinerary?: Itinerary;
+            budget?: typeof result.budget;
+            route_groups?: typeof result.route_groups;
+            meal_plan?: typeof result.meal_plan;
+            transit_notes?: typeof result.transit_notes;
+            day_schedule?: typeof result.day_schedule;
+            critique?: typeof result.critique;
+          };
+          nextResult = {
+            ...result,
+            ...(p.itinerary ? { itinerary: p.itinerary } : {}),
+            ...(p.budget ? { budget: p.budget } : {}),
+            ...(p.route_groups ? { route_groups: p.route_groups } : {}),
+            ...(p.meal_plan ? { meal_plan: p.meal_plan } : {}),
+            ...(p.transit_notes ? { transit_notes: p.transit_notes } : {}),
+            ...(p.day_schedule ? { day_schedule: p.day_schedule } : {}),
+            ...(p.critique ? { critique: p.critique } : {}),
+          };
+          setResult(nextResult);
+          setPhase("done");
+          persist("done", { result: nextResult });
+        } else if (ev.event === "error") {
+          setErrMsg(`${ev.payload.type}: ${ev.payload.message}`);
+          setPhase("done");
+        }
+      }
     } catch (e) {
       setErrMsg(e instanceof Error ? e.message : String(e));
       setPhase("done");

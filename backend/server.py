@@ -61,7 +61,13 @@ class BuildRequest(BaseModel):
 
 
 class ReviseRequest(BaseModel):
-    itinerary: dict
+    # `result` is the full prior PlanResult (preferences, places, hotels,
+    # destinations, arrival, budget, itinerary, …). It gives the smart-router
+    # enough context to decide whether to do a text-only edit or re-run
+    # route/itinerary/critic. For backwards compatibility we also accept the
+    # legacy {itinerary, change} shape and synthesize a minimal result.
+    result: dict | None = None
+    itinerary: dict | None = None
     change: str
 
 
@@ -138,8 +144,12 @@ async def build(req: BuildRequest):
 
 
 @app.post("/revise")
-async def revise(req: ReviseRequest) -> dict:
-    return await agents.revision_agent(req.itinerary, req.change)
+async def revise(req: ReviseRequest):
+    """SSE streaming revision. Routes the change through one of three paths
+    (text / structural / budget) and emits the same step events as the
+    planning pipeline so the UI can show which agent is running."""
+    result = req.result or {"itinerary": req.itinerary or {}}
+    return _sse(lambda: orchestrator.run_revise(result, req.change))
 
 
 @app.post("/candidate-detail")

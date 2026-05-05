@@ -573,3 +573,116 @@ async def run_plan(user_request: str) -> AsyncIterator[dict]:
         selections=None,
     ):
         yield ev
+
+
+# --------------------------- streaming revise ---------------------------
+
+def _names(items: list) -> list[str]:
+    out = []
+    for it in items or []:
+        if isinstance(it, dict):
+            n = it.get("name")
+            if n:
+                out.append(n)
+        elif isinstance(it, str):
+            out.append(it)
+    return out
+
+
+async def run_revise(result: dict, change: str) -> AsyncIterator[dict]:
+    """Smart-routed, streaming revision. Picks one of:
+      - text:        revision_agent only (cheap, surface tweaks)
+      - structural:  route + itinerary + critic (re-shapes the day plan)
+      - budget:      budget recompute + itinerary text revision
+    Emits agent step events the same way the planning pipeline does, then
+    a `complete` event with the partial PlanResult fields that changed.
+    """
+    itinerary = result.get("itinerary") or {}
+    prefs = result.get("preferences") or {}
+    arrival = result.get("arrival")
+
+    # Router
+    yield {"event": "step", "payload": {"name": "revision_router", "status": "running"}}
+    decision = await agents.revision_router(itinerary, change)
+    yield {"event": "step", "payload": {"name": "revision_router", "status": "done", "output": decision}}
+    category = decision["category"]
+
+    place_names = _names(result.get("places", []))
+    restaurant_names = _names(result.get("restaurants", []))
+    hotel_names = _names(result.get("hotels", []))
+    hotel_name = hotel_names[0] if hotel_names else None
+
+    if category == "text":
+        yield {"event": "step", "payload": {"name": "revision", "status": "running"}}
+        new_itin = await agents.revision_agent(itinerary, change)
+        yield {"event": "step", "payload": {"name": "revision", "status": "done"}}
+        yield {"event": "complete", "payload": {
+            "category": category,
+            "reason": decision["reason"],
+            "itinerary": new_itin,
+        }}
+        return
+
+    if category == "structural":
+        destinations = result.get("destinations") or []
+        trip_length_days = sum(int(d.get("days", 0) or 0) for d in destinations) \
+            or len(itinerary.get("daily_itinerary") or []) \
+            or int(prefs.get("trip_length_days") or 1)
+        destination_label = ", ".join(d.get("city", "") for d in destinations if d.get("city")) \
+            or prefs.get("destination") or "trip"
+
+        yield {"event": "step", "payload": {"name": "route", "status": "running"}}
+        route_data = await agents.route_agent(
+            attractions=place_names,
+            restaurants=restaurant_names,
+            trip_length_days=trip_length_days,
+            destination=destination_label,
+            pace=prefs.get("pace", "medium"),
+            interests=prefs.get("interests", []),
+            budget_level=prefs.get("budget_level", "medium"),
+            hotel_name=hotel_name,
+            feedback=change,
+        )
+        yield {"event": "step", "payload": {"name": "route", "status": "done", "output": route_data}}
+
+        yield {"event": "step", "payload": {"name": "itinerary", "status": "running"}}
+        new_itin = await agents.itinerary_agent(
+            prefs, place_names + restaurant_names, route_data.get("route_groups", {})
+        )
+        yield {"event": "step", "payload": {"name": "itinerary", "status": "done"}}
+
+        yield {"event": "step", "payload": {"name": "critic", "status": "running"}}
+        critique = await agents.critic_agent(new_itin, prefs, budget=result.get("budget") or {})
+        yield {"event": "step", "payload": {"name": "critic", "status": "done", "output": critique}}
+
+        yield {"event": "complete", "payload": {
+            "category": category,
+            "reason": decision["reason"],
+            "itinerary": new_itin,
+            "route_groups": route_data.get("route_groups", {}),
+            "meal_plan": route_data.get("meal_plan", {}),
+            "transit_notes": route_data.get("transit_notes", {}),
+            "day_schedule": route_data.get("day_schedule", {}),
+            "critique": critique,
+        }}
+        return
+
+    # category == "budget"
+    yield {"event": "step", "payload": {"name": "budget", "status": "running"}}
+    prefs_for_budget = dict(prefs)
+    prefs_for_budget["constraints"] = list(prefs.get("constraints") or []) + [f"BUDGET CHANGE: {change}"]
+    new_budget = await agents.budget_agent(
+        prefs_for_budget, place_names + restaurant_names, arrival=arrival
+    )
+    yield {"event": "step", "payload": {"name": "budget", "status": "done", "output": new_budget}}
+
+    yield {"event": "step", "payload": {"name": "revision", "status": "running"}}
+    new_itin = await agents.revision_agent(itinerary, change)
+    yield {"event": "step", "payload": {"name": "revision", "status": "done"}}
+
+    yield {"event": "complete", "payload": {
+        "category": category,
+        "reason": decision["reason"],
+        "itinerary": new_itin,
+        "budget": new_budget,
+    }}

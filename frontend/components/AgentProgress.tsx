@@ -16,9 +16,11 @@ const ORDER: AgentName[] = [
   "destination_suggester",
   "arrival",
   "research",
+  "revision_router",
   "route",
   "budget",
   "itinerary",
+  "revision",
   "critic",
 ];
 
@@ -32,6 +34,8 @@ const LABELS: Record<AgentName, string> = {
   budget: "Budget estimate",
   itinerary: "Itinerary draft",
   critic: "Feasibility critique",
+  revision_router: "Revision routing",
+  revision: "Applying revision",
 };
 
 const SUBLABELS: Record<AgentName, string> = {
@@ -44,6 +48,8 @@ const SUBLABELS: Record<AgentName, string> = {
   budget: "Estimating per-day costs (incl. lodging)",
   itinerary: "Generating the day-by-day plan (fine-tuned model)",
   critic: "Checking for rushed or unrealistic days",
+  revision_router: "Deciding which agents to re-run for your change",
+  revision: "Rewriting the itinerary text with your change",
 };
 
 interface AgentProgressProps {

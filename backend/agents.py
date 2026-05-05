@@ -868,3 +868,40 @@ async def revision_agent(itinerary: dict, change_request: str) -> dict:
             if isinstance(inner, dict) and "daily_itinerary" in inner:
                 return inner
     return obj
+
+
+# --------------------------- revision router ---------------------------
+
+REVISION_ROUTER_SYSTEM = """You classify a user's change request against the
+current itinerary. Pick exactly one category:
+
+- "text"        — surface tweaks: rewording, adding tips, swapping a single
+                  attraction for a similar one in the same area, adjusting
+                  evening plans without time/transit implications.
+- "structural"  — anything that changes the day plan shape: adding/removing
+                  attractions in a way that reshuffles the day, changing
+                  pace or order of cities/days, swapping a place that's
+                  geographically distant from current ones, time-window
+                  changes (e.g., must end by 6pm), changing the trip length.
+- "budget"      — change is primarily about money: "make it cheaper",
+                  "stay under $X/day", "upgrade to luxury hotels", "drop the
+                  high-end dinner". The day shape stays the same; price
+                  tier shifts.
+
+Output JSON: {"category": "text"|"structural"|"budget", "reason": "<one short sentence>"}
+"""
+
+
+async def revision_router(itinerary: dict, change_request: str) -> dict:
+    payload = json.dumps({"itinerary_summary": {
+        "trip_summary": itinerary.get("trip_summary"),
+        "days": [d.get("theme") for d in (itinerary.get("daily_itinerary") or [])],
+    }, "change_request": change_request})
+    raw = await orch_complete(REVISION_ROUTER_SYSTEM, payload, response_format_json=True, max_tokens=512)
+    obj = _extract_json(raw)
+    if not isinstance(obj, dict):
+        return {"category": "text", "reason": "router output unparseable; defaulting to text"}
+    cat = obj.get("category")
+    if cat not in ("text", "structural", "budget"):
+        cat = "text"
+    return {"category": cat, "reason": str(obj.get("reason") or "")[:200]}
