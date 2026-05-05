@@ -102,13 +102,14 @@ async def orch_complete_with_tools(
 
     final_text = ""
     for _ in range(max_steps):
+        # Cerebras (and some other strict providers) reject `response_format`
+        # alongside `tools`. The system prompt instructs JSON output and
+        # `_extract_json` handles parsing, so omit response_format here.
         kwargs: dict[str, Any] = {
             "tools": tools,
             "tool_choice": "auto",
             "extra_body": NO_THINK_EXTRA,
         }
-        if response_format_json:
-            kwargs["response_format"] = {"type": "json_object"}
         r = await orchestrator.chat.completions.create(
             model=ORCH_MODEL,
             messages=messages,
