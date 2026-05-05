@@ -11,7 +11,6 @@ interface ItineraryViewProps {
     should_revise?: boolean;
     suggested_revisions?: string[];
   };
-  restaurants?: Candidate[];
   hotels?: Candidate[];
   arrival?: ArrivalData | null;
   arrivalChoices?: { outbound: ArrivalOption | null; return: ArrivalOption | null } | null;
@@ -25,7 +24,6 @@ export function ItineraryView({
   itinerary,
   budget,
   critique,
-  restaurants,
   hotels,
   arrival,
   mealPlan,
@@ -154,35 +152,6 @@ export function ItineraryView({
           </div>
         </section>
       )}
-
-      {(hotels && hotels.length > 0) || (restaurants && restaurants.length > 0) ? (
-        <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {hotels && hotels.length > 0 && (
-            <div className="card p-6">
-              <div className="text-uppercase-cta mb-3" style={{ color: "#777169" }}>
-                Where to stay · candidates
-              </div>
-              <ul className="flex flex-col gap-3">
-                {hotels.map((h, i) => (
-                  <CandidateLine key={i} item={h} />
-                ))}
-              </ul>
-            </div>
-          )}
-          {restaurants && restaurants.length > 0 && (
-            <div className="card p-6">
-              <div className="text-uppercase-cta mb-3" style={{ color: "#777169" }}>
-                Where to eat · candidates
-              </div>
-              <ul className="flex flex-col gap-3">
-                {restaurants.map((r, i) => (
-                  <CandidateLine key={i} item={r} />
-                ))}
-              </ul>
-            </div>
-          )}
-        </section>
-      ) : null}
 
       {(budget?.daily_estimate || itinerary.budget_summary) && (
         <section className="card p-6">
@@ -395,21 +364,6 @@ function FlightLine({ label, opt }: { label: string; opt: ArrivalOption | null }
         {opt.price && <> · {opt.price} one-way</>}
       </div>
     </div>
-  );
-}
-
-function CandidateLine({ item }: { item: Candidate }) {
-  return (
-    <li className="flex flex-col gap-0.5">
-      <span className="text-[15px] font-medium" style={{ color: "#000", letterSpacing: "0.15px" }}>
-        {item.name}
-      </span>
-      {item.description && (
-        <span className="text-[14px]" style={{ color: "#4e4e4e", letterSpacing: "0.14px", lineHeight: 1.5 }}>
-          {item.description}
-        </span>
-      )}
-    </li>
   );
 }
 

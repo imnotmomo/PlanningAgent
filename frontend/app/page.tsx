@@ -381,7 +381,6 @@ export default function Page() {
                   itinerary={result.itinerary}
                   budget={result.budget}
                   critique={result.critique}
-                  restaurants={result.restaurants}
                   hotels={result.hotels}
                   arrival={result.arrival}
                   mealPlan={result.meal_plan}

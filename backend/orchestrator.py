@@ -385,6 +385,11 @@ async def run_build(
         "backup_options": backup_options[:8],
         "travel_tips": list(dict.fromkeys(travel_tips))[:8],
     }
+    # Replace the LoRA's templated tips with ones grounded in the actual
+    # day plan (specific days, places, constraints).
+    specific_tips = await agents.tips_agent(itinerary, prefs)
+    if specific_tips:
+        itinerary["travel_tips"] = specific_tips
     yield {"event": "step", "payload": {"name": "itinerary", "status": "done", "output": itinerary}}
 
     # ----- critic (whole trip) with retry-replan if score < 7 -----
@@ -508,6 +513,9 @@ async def run_build(
             "backup_options": backup_options_v2[:8],
             "travel_tips": list(dict.fromkeys(travel_tips_v2))[:8],
         }
+        specific_tips_retry = await agents.tips_agent(itinerary, prefs)
+        if specific_tips_retry:
+            itinerary["travel_tips"] = specific_tips_retry
         yield {"event": "step", "payload": {"name": "itinerary", "status": "done", "output": itinerary, "is_retry": True, "retry_round": retries}}
 
         # ---- Re-critic ----
@@ -649,6 +657,10 @@ async def run_revise(result: dict, change: str) -> AsyncIterator[dict]:
         new_itin = await agents.itinerary_agent(
             prefs, place_names + restaurant_names, route_data.get("route_groups", {})
         )
+        # Replace the LoRA's templated tips with itinerary-specific ones
+        rev_tips = await agents.tips_agent(new_itin, prefs)
+        if rev_tips:
+            new_itin["travel_tips"] = rev_tips
         yield {"event": "step", "payload": {"name": "itinerary", "status": "done"}}
 
         yield {"event": "step", "payload": {"name": "critic", "status": "running"}}

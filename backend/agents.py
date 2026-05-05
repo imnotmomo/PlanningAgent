@@ -828,6 +828,54 @@ Be terse. Output JSON only.
 """
 
 
+# --------------------------- itinerary-specific travel tips ---------------
+
+TIPS_SYSTEM = """You generate 3-5 travel tips that are SPECIFIC to the
+provided day-by-day itinerary. Reference the actual cities, places, and
+days the traveler is visiting — not generic advice.
+
+Bad (generic, do NOT output):
+  "Check current opening hours."
+  "Bring comfortable shoes."
+  "Carry cash."
+
+Good (specific, DO output):
+  "Visit Senso-ji on Day 1 before 9am — it gets crowded fast and the
+   morning light on the temple is the best photo window."
+  "Day 2's Fushimi Inari is at the south end of Kyoto; if you're staying
+   near Gion, take the JR Nara line — about 20 min vs. 40+ on bus."
+  "TeamLab Planets requires advance tickets — book before your trip; the
+   walk-up line on Day 3 will eat your morning."
+
+Output JSON: {"travel_tips": [str, str, str, ...]}  (3-5 items)
+Each tip must reference at least one concrete day, place, or constraint
+from the itinerary. Be terse (one or two sentences each)."""
+
+
+async def tips_agent(itinerary: dict, prefs: dict) -> list[str]:
+    """Generate itinerary-specific travel tips. Replaces the LoRA's templated
+    tips with ones that actually reference the user's plan."""
+    payload = json.dumps({
+        "trip_summary": itinerary.get("trip_summary"),
+        "daily_itinerary": itinerary.get("daily_itinerary") or [],
+        "destination": prefs.get("destination"),
+        "interests": prefs.get("interests") or [],
+        "constraints": prefs.get("constraints") or [],
+    })
+    raw = await orch_complete(TIPS_SYSTEM, payload, response_format_json=True, max_tokens=1024)
+    obj = _extract_json(raw)
+    if not isinstance(obj, dict):
+        return []
+    tips = obj.get("travel_tips") or []
+    if not isinstance(tips, list):
+        return []
+    out: list[str] = []
+    for t in tips:
+        if isinstance(t, str) and t.strip():
+            out.append(t.strip())
+    return out[:5]
+
+
 async def critic_agent(itinerary: dict, prefs: dict, budget: dict | None = None) -> dict:
     payload = json.dumps({"itinerary": itinerary, "prefs": prefs, "budget": budget or {}})
     raw = await orch_complete(CRITIC_SYSTEM, payload, response_format_json=True)
