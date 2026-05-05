@@ -216,7 +216,7 @@ export async function* streamResearch(
 export async function* streamBuild(
   preferences: Record<string, unknown>,
   research: ResearchPayload,
-  arrival: { options: ArrivalOption[] } | null,
+  arrival: ArrivalData | null,
   selections: Selections | null,
 ): AsyncGenerator<StreamEvent> {
   const res = await fetch(apiUrl("/build"), {
