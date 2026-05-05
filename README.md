@@ -132,6 +132,164 @@ Three SSE-streamed phases plus a streaming revision endpoint.
 
 **Resume** — the latest checkpoint (after destinations / research / final) is persisted to `localStorage` with a UUID and 7-day TTL. On page mount, a modal offers to continue or start fresh.
 
+### Dependency graph
+
+Solid arrows are required inputs; dotted/labeled branches are conditional. Each agent box names its target LLM and tools.
+
+```
+                                user_request
+                                      │
+                                      ▼
+                       ┌──────────────────────────────┐
+                       │ preference_agent             │ → Cerebras  ·  no tools
+                       └──────────────┬───────────────┘
+                                      │ prefs (destinations[],
+                                      │  country_or_region, origin,
+                                      │  trip_length_days, budget_level,
+                                      │  pace, interests)
+                                      ▼
+                       ┌──────────────────────────────┐
+                       │ missing_info_agent           │ pure Python
+                       └──────────────┬───────────────┘
+                          missing? ───┴── yes ──► incomplete event, STOP
+                                      │ no
+                                      ▼
+              ┌──────────────────────────────────────────────────┐
+              │ destination_suggester_agent                      │ → Cerebras
+              │ (only if destinations==[] and country_or_region) │   no tools
+              └──────────────┬───────────────────────────────────┘
+                  candidates  │  default_split
+                              ▼
+                       [picker UI: user picks 1+ cities OR uses default_split]
+                              │ legs = [{city, country, days}, …]
+                              │
+                  ┌───────────┴───────────────────────────┐
+                  ▼                                       ▼
+         ┌──────────────────┐               ┌─────────────────────────┐
+         │ arrival_agent    │ → Cerebras    │ research_agent          │ → Cerebras
+         │ only if          │   tavily      │ per leg, parallel via   │   tavily
+         │ prefs.origin     │               │ asyncio.gather          │
+         └────────┬─────────┘               └────────────┬────────────┘
+            outbound_options                  places, restaurants, hotels
+            return_options                    (descriptions, tagged by city)
+                  │                                      │
+                  └───────────┬──────────────────────────┘
+                              ▼
+                       [picker UI: candidate selection +
+                        flight choice (or "decide later") +
+                        "+ Add your own" custom candidates]
+                                   │
+                                   │ if any customs:
+                                   ▼
+                       ┌──────────────────────────────┐
+                       │ /enrich-candidates           │ tavily (parallel)
+                       │ Tavily look-up per custom    │  per item
+                       │ → description merged into    │
+                       │   research.places/etc        │
+                       └──────────────┬───────────────┘
+                                      │ selections + merged research
+                                      ▼
+      ┌──────────── replan loop (max 2 retries) ────────────┐
+      │  ▲ feedback = critic.issues + critic.suggested_revisions
+      │  │
+      │  ┌────────────────────────────────────────┐
+      │  │ route_agent (per leg)             ◄── REPLAN entry
+      │  │ inputs:                                │ → Cerebras  ·  no tools
+      │  │   - attractions {priority, optional}   │
+      │  │   - restaurants {priority, optional}   │
+      │  │   - hotel_name (from selections)       │
+      │  │   - pace, interests, budget_level      │
+      │  │   - feedback ◄─── (set on replan only) │
+      │  └────────────┬───────────────────────────┘
+      │       route_groups, meal_plan, transit_notes,
+      │       day_schedule (with time anchors)
+      │                   │
+      │                   ▼
+      │  ┌────────────────────────────────────────┐
+      │  │ budget_agent  (NOT re-run on replan)   │
+      │  │ inputs:                                │ → Cerebras  ·  tavily
+      │  │   - prefs, selected_places             │
+      │  │   - arrival (with computed_airfare     │
+      │  │     from user's flight picks, if any)  │
+      │  │   - selected_hotel {name, city}        │
+      │  │ outputs buckets {hotel,transit,meals,  │
+      │  │   attractions} + airfare {low,high};   │
+      │  │ backend sums into daily / total /      │
+      │  │   airfare estimates                    │
+      │  └────────────┬───────────────────────────┘
+      │                   │
+      │                   ▼
+      │  ┌────────────────────────────────────────┐
+      │  │ itinerary_agent (per leg)         ◄── REPLAN entry
+      │  │ inputs:                                │ → tripwise-mlx-bf16
+      │  │   - city_prefs (per-leg)               │   (LoRA-merged Qwen2.5-7B
+      │  │   - selected (places + meal names)     │    on oMLX)
+      │  │   - route_groups (this leg)            │   no tools
+      │  │ outputs day-by-day JSON in trained     │
+      │  │ schema (trip_summary, daily_itinerary  │
+      │  │ + budget_summary, backup_options,      │
+      │  │ travel_tips)                           │
+      │  └────────────┬───────────────────────────┘
+      │       per-leg results truncated to leg.days
+      │       day numbers re-offset across legs
+      │                   │
+      │                   ▼
+      │  ┌────────────────────────────────────────┐
+      │  │ tips_agent                             │ → Cerebras  ·  no tools
+      │  │ replaces LoRA's templated travel_tips  │
+      │  │ with 3-5 itinerary-specific ones       │
+      │  │ that reference real days/places        │
+      │  └────────────┬───────────────────────────┘
+      │                   │
+      │                   ▼
+      │  ┌────────────────────────────────────────┐
+      │  │ critic_agent                      ◄── REPLAN entry
+      │  │ inputs: itinerary, prefs, budget       │ → Cerebras  ·  no tools
+      │  │ outputs {score 0-10, passed,           │
+      │  │   issues, suggested_revisions}         │
+      │  └────────────┬───────────────────────────┘
+      │               │
+      │               ├── score ≥ 7 ──► complete event
+      │               │
+      └───────────────┴── score < 7 AND retries < 2:
+                          retry_round += 1
+                          loop back to route_agent (with feedback)
+                          → itinerary_agent → tips_agent → critic_agent
+                          (budget_agent skipped on replan)
+                                   │
+                                   ▼
+                              complete event
+
+      ╭───────────────────────  /revise (post-completion, SSE) ───────────────────────╮
+      │                                                                                │
+      │   change_request                                                               │
+      │         │                                                                      │
+      │         ▼                                                                      │
+      │   ┌──────────────────────────────────────────┐                                 │
+      │   │ revision_router                          │ → Cerebras · no tools           │
+      │   │ classifies → text / structural / budget  │                                 │
+      │   │ (and infers new_budget_level if budget)  │                                 │
+      │   └──┬─────────────┬──────────────────┬──────┘                                 │
+      │      │             │                  │                                        │
+      │   text path   structural path    budget path (tier shift)                      │
+      │      │             │                  │                                        │
+      │      ▼             ▼                  ▼                                        │
+      │  revision     route + itinerary  research × N legs (NEW tier)                  │
+      │   _agent       (LoRA) + tips     → route → itinerary (LoRA) → tips             │
+      │                + critic           → budget (Cerebras+tavily) → critic          │
+      │                + replan loop      (different hotels / restaurants / places)    │
+      │      │             │                  │                                        │
+      │      └──────────┬──┴──────────────────┘                                        │
+      │                 ▼                                                              │
+      │           complete event with updated PlanResult fields                        │
+      ╰────────────────────────────────────────────────────────────────────────────────╯
+
+      ╭───────────────────────  /candidate-detail (picker modal) ──────────────────────╮
+      │   tavily_search_detailed (advanced + images): name + city → summary +          │
+      │   images + sources                                                             │
+      ╰────────────────────────────────────────────────────────────────────────────────╯
+```
+
 ## API
 
 | Method + Path | Body | Streams |
