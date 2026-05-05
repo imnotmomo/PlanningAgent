@@ -170,17 +170,45 @@ ITINERARY_SYSTEM_PROMPT = (
 )
 
 
-async def itin_complete(user_input: dict, *, max_tokens: int = 1024) -> str:
+async def itin_complete(
+    user_input: dict,
+    *,
+    max_tokens: int = 1024,
+    timeout: float = 90.0,
+    max_retries: int = 2,
+) -> str:
     """Call the fine-tuned itinerary model. `user_input` matches the training
     schema (destination, trip_length_days, travelers, budget_level, interests,
-    pace, constraints, selected_places, route_groups)."""
-    r = await itinerary.chat.completions.create(
-        model=ITIN_MODEL,
-        messages=[
-            {"role": "system", "content": ITINERARY_SYSTEM_PROMPT},
-            {"role": "user", "content": json.dumps(user_input)},
-        ],
-        temperature=0.0,
-        max_tokens=max_tokens,
-    )
-    return r.choices[0].message.content or ""
+    pace, constraints, selected_places, route_groups).
+
+    Robust against cloudflare-tunnel drops on long generations: each attempt
+    has its own `timeout`. We retry up to `max_retries` times on timeout or
+    transient connection errors before raising — a single dropped tunnel
+    connection shouldn't kill the whole pipeline.
+    """
+    last_exc: Exception | None = None
+    for attempt in range(max_retries + 1):
+        try:
+            r = await itinerary.chat.completions.create(
+                model=ITIN_MODEL,
+                messages=[
+                    {"role": "system", "content": ITINERARY_SYSTEM_PROMPT},
+                    {"role": "user", "content": json.dumps(user_input)},
+                ],
+                temperature=0.0,
+                max_tokens=max_tokens,
+                timeout=timeout,
+            )
+            return r.choices[0].message.content or ""
+        except Exception as exc:  # APITimeoutError, APIConnectionError, etc.
+            last_exc = exc
+            # Retry on timeout / connection-level errors only. The OpenAI
+            # SDK raises distinct types we'd need to import; treat any
+            # exception name containing these tokens as retryable.
+            name = type(exc).__name__
+            retryable = any(t in name for t in ("Timeout", "Connection"))
+            if not retryable or attempt == max_retries:
+                raise
+    if last_exc:
+        raise last_exc
+    return ""
