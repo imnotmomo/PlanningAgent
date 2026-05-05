@@ -94,8 +94,7 @@ export function CandidatePicker({
       )}
 
       {(["places", "restaurants", "hotels"] as const).map((cat) => {
-        if (cat === "arrival_choices") return null;
-        const items = research[cat as "places" | "restaurants" | "hotels"];
+        const items = research[cat];
         if (!items || items.length === 0) return null;
         const meta = CATEGORY_META[cat];
         const picked = new Set(picks[cat]);
