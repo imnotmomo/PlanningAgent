@@ -245,9 +245,11 @@ export default function Page() {
           setResult(nextResult);
           setPhase("done");
           persist("done", { result: nextResult });
+          break;
         } else if (ev.event === "error") {
           setErrMsg(`${ev.payload.type}: ${ev.payload.message}`);
           setPhase("done");
+          break;
         }
       }
     } catch (e) {
@@ -499,7 +501,7 @@ function Header({ onReset }: { onReset: () => void }) {
         </button>
         <nav className="flex items-center gap-4">
           <a
-            href="https://github.com"
+            href="https://github.com/imnotmomo/PlanningAgent"
             className="text-[15px] font-medium hidden md:inline"
             style={{ color: "#4e4e4e", letterSpacing: "0.15px" }}
           >
