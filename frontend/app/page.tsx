@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { TripForm } from "@/components/TripForm";
-import { AgentProgress, StepState } from "@/components/AgentProgress";
+import { AgentProgress, StepState, AGENT_LABELS } from "@/components/AgentProgress";
 import { ItineraryView } from "@/components/ItineraryView";
 import { RevisionForm } from "@/components/RevisionForm";
 import { CandidatePicker } from "@/components/CandidatePicker";
@@ -214,9 +214,19 @@ export default function Page() {
   const applyRevision = async (change: string) => {
     if (!result) return;
     setPhase("revising");
-    // Reset prior agent statuses so the revision pipeline shows fresh steps
-    setSteps(new Map());
-    setShowPipeline(true);
+    // Clear only the revision-specific agent slots so the inline indicator
+    // shows fresh state. Don't blow away showPipeline or earlier planning
+    // steps — the user is actively viewing the itinerary above.
+    setSteps((prev) => {
+      const next = new Map(prev);
+      next.delete("revision_router");
+      next.delete("revision");
+      next.delete("route");
+      next.delete("itinerary");
+      next.delete("critic");
+      next.delete("budget");
+      return next;
+    });
     try {
       let nextResult = result;
       for await (const ev of streamRevise(result, change)) {
@@ -379,6 +389,27 @@ export default function Page() {
                   selectedHotels={lastSelections?.hotels}
                   arrivalChoices={lastSelections?.arrival_choices ?? null}
                 />
+                {phase === "revising" && (() => {
+                  const running = Array.from(steps.values()).find((s) => s.status === "running");
+                  const lastDone = Array.from(steps.values()).filter((s) => s.status === "done").slice(-1)[0];
+                  const showName = running?.name ?? lastDone?.name;
+                  const verb = running ? "Running" : "Finished";
+                  return showName ? (
+                    <div
+                      className="card-section px-4 py-3 flex items-center gap-3 text-[14px]"
+                      style={{ color: "#4e4e4e" }}
+                    >
+                      <span
+                        className="inline-block h-2 w-2 rounded-full"
+                        style={{
+                          backgroundColor: running ? "#bf6e3a" : "#7aa274",
+                          animation: running ? "pulse 1.4s ease-in-out infinite" : undefined,
+                        }}
+                      />
+                      <span className="font-medium">{verb}: {AGENT_LABELS[showName]}</span>
+                    </div>
+                  ) : null;
+                })()}
                 <RevisionForm onSubmit={applyRevision} disabled={phase === "revising"} />
               </>
             )}

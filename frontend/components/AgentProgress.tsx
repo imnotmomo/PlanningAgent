@@ -10,6 +10,20 @@ export interface StepState {
   retryRound?: number; // > 0 if this step is part of a critic-driven replan
 }
 
+export const AGENT_LABELS: Record<AgentName, string> = {
+  preference: "Preferences",
+  missing_info: "Required fields check",
+  destination_suggester: "Destination suggestions",
+  arrival: "Getting there",
+  research: "Place research",
+  route: "Route + meals + transit",
+  budget: "Budget estimate",
+  itinerary: "Itinerary draft",
+  critic: "Feasibility critique",
+  revision_router: "Routing your change",
+  revision: "Applying revision",
+};
+
 const ORDER: AgentName[] = [
   "preference",
   "missing_info",
@@ -24,19 +38,7 @@ const ORDER: AgentName[] = [
   "critic",
 ];
 
-const LABELS: Record<AgentName, string> = {
-  preference: "Preferences",
-  missing_info: "Required fields check",
-  destination_suggester: "Destination suggestions",
-  arrival: "Getting there",
-  research: "Place research",
-  route: "Route + meals + transit",
-  budget: "Budget estimate",
-  itinerary: "Itinerary draft",
-  critic: "Feasibility critique",
-  revision_router: "Revision routing",
-  revision: "Applying revision",
-};
+const LABELS = AGENT_LABELS;
 
 const SUBLABELS: Record<AgentName, string> = {
   preference: "Extracting your trip parameters",
