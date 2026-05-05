@@ -1,15 +1,37 @@
 "use client";
 import { useState } from "react";
-import { Candidate, ResearchPayload, ArrivalOption, ArrivalData, Selections, CandidateDetail, fetchCandidateDetail } from "@/lib/api";
+import {
+  Candidate,
+  ResearchPayload,
+  ArrivalOption,
+  ArrivalData,
+  Selections,
+  CandidateDetail,
+  fetchCandidateDetail,
+  enrichCustomCandidates,
+} from "@/lib/api";
 
 interface CandidatePickerProps {
   research: ResearchPayload;
   arrival: ArrivalData | null;
   preferences: Record<string, unknown>;
-  onContinue: (selections: Selections | null) => void;
+  /** Called with the final selections; second arg is enriched custom
+   *  candidates (with Tavily-fetched descriptions) the caller should
+   *  merge into research.places/restaurants/hotels before /build. */
+  onContinue: (
+    selections: Selections | null,
+    customs: { places: Candidate[]; restaurants: Candidate[]; hotels: Candidate[] } | null,
+  ) => void;
   onCancel: () => void;
   disabled?: boolean;
 }
+
+type Cat = "places" | "restaurants" | "hotels";
+const CAT_TO_CATEGORY: Record<Cat, "place" | "restaurant" | "hotel"> = {
+  places: "place",
+  restaurants: "restaurant",
+  hotels: "hotel",
+};
 
 const CATEGORY_META: Record<keyof ResearchPayload | "by_city", { title: string; sublabel: string; cat: "place" | "restaurant" | "hotel" }> = {
   places: { title: "Places", sublabel: "Attractions, viewpoints, neighborhoods", cat: "place" },
@@ -45,7 +67,55 @@ export function CandidatePicker({
   const [decideLater, setDecideLater] = useState(false);
   const [detailOpen, setDetailOpen] = useState<{ item: Candidate; cat: "place" | "restaurant" | "hotel" } | null>(null);
 
-  const toggle = (cat: "places" | "restaurants" | "hotels", name: string) => {
+  // User-added custom candidates per category. Populated by the "+ Add custom"
+  // card; descriptions are filled in via Tavily on Continue.
+  const [customs, setCustoms] = useState<{ places: Candidate[]; restaurants: Candidate[]; hotels: Candidate[] }>({
+    places: [],
+    restaurants: [],
+    hotels: [],
+  });
+  // The category currently showing the inline add form (one at a time)
+  const [addingFor, setAddingFor] = useState<Cat | null>(null);
+  const [enriching, setEnriching] = useState(false);
+  const [enrichErr, setEnrichErr] = useState<string | null>(null);
+
+  // Distinct cities present in research, for the city picker on multi-leg trips.
+  const cityOptions: string[] = (() => {
+    const set = new Set<string>();
+    for (const arr of [research.places, research.restaurants, research.hotels]) {
+      for (const it of arr || []) if (it.city) set.add(it.city);
+    }
+    return Array.from(set);
+  })();
+
+  const addCustom = (cat: Cat, name: string, city: string | undefined) => {
+    const trimmed = name.trim();
+    if (!trimmed) return;
+    setCustoms((prev) => ({
+      ...prev,
+      [cat]: [...prev[cat], { name: trimmed, city, description: "" }],
+    }));
+    // Auto-pick the new custom so it makes it into selections
+    setPicks((prev) => {
+      const set = new Set(prev[cat]);
+      set.add(trimmed);
+      return { ...prev, [cat]: Array.from(set) };
+    });
+    setAddingFor(null);
+  };
+
+  const removeCustom = (cat: Cat, name: string) => {
+    setCustoms((prev) => ({
+      ...prev,
+      [cat]: prev[cat].filter((c) => c.name !== name),
+    }));
+    setPicks((prev) => ({
+      ...prev,
+      [cat]: prev[cat].filter((n) => n !== name),
+    }));
+  };
+
+  const toggle = (cat: Cat, name: string) => {
     setPicks((prev) => {
       const set = new Set(prev[cat]);
       if (set.has(name)) set.delete(name);
@@ -62,7 +132,9 @@ export function CandidatePicker({
   const returnOpts = arrival?.return_options || [];
   const hasRoundTrip = outboundOpts.length > 0 || returnOpts.length > 0;
 
-  const handleContinue = () => {
+  const totalCustom = customs.places.length + customs.restaurants.length + customs.hotels.length;
+
+  const handleContinue = async () => {
     const arrivalChoices =
       hasRoundTrip && !decideLater && (outbound || returnFlight)
         ? { outbound, return: returnFlight }
@@ -72,7 +144,37 @@ export function CandidatePicker({
       arrival_choices: arrivalChoices,
     };
     const anyPick = totalPicked > 0 || arrivalChoices != null;
-    onContinue(anyPick ? finalSelections : null);
+
+    // If the user added customs, enrich them via Tavily so route + itinerary
+    // see real descriptions, not blanks. Block the Continue button while this
+    // runs (typically <5 s for a few items).
+    let enrichedCustoms: { places: Candidate[]; restaurants: Candidate[]; hotels: Candidate[] } | null = null;
+    if (totalCustom > 0) {
+      setEnriching(true);
+      setEnrichErr(null);
+      try {
+        const inputs = (["places", "restaurants", "hotels"] as const).flatMap((cat) =>
+          customs[cat].map((c) => ({ name: c.name, city: c.city, category: CAT_TO_CATEGORY[cat] })),
+        );
+        const dest = (preferences as { destination?: string }).destination;
+        const got = await enrichCustomCandidates(inputs, dest);
+        // Map results back into per-category lists, preserving order.
+        enrichedCustoms = { places: [], restaurants: [], hotels: [] };
+        let idx = 0;
+        for (const cat of ["places", "restaurants", "hotels"] as const) {
+          for (let i = 0; i < customs[cat].length; i++) {
+            const enr = got[idx++];
+            if (enr) enrichedCustoms[cat].push(enr);
+          }
+        }
+      } catch (e) {
+        setEnrichErr(e instanceof Error ? e.message : String(e));
+        setEnriching(false);
+        return;
+      }
+      setEnriching(false);
+    }
+    onContinue(anyPick ? finalSelections : null, enrichedCustoms);
   };
 
   return (
@@ -94,8 +196,11 @@ export function CandidatePicker({
       )}
 
       {(["places", "restaurants", "hotels"] as const).map((cat) => {
-        const items = research[cat];
-        if (!items || items.length === 0) return null;
+        const items = research[cat] || [];
+        const customItems = customs[cat];
+        const totalCount = items.length + customItems.length;
+        // Always render the section so the "+ Add custom" card is reachable
+        // even when research returned zero candidates for this category.
         const meta = CATEGORY_META[cat];
         const picked = new Set(picks[cat]);
         return (
@@ -103,7 +208,10 @@ export function CandidatePicker({
             <div className="flex items-baseline justify-between gap-3 mb-4 flex-wrap">
               <div>
                 <div className="text-uppercase-cta" style={{ color: "#777169" }}>
-                  {meta.title} <span style={{ fontSize: 11 }}>· {items.length} candidates</span>
+                  {meta.title} <span style={{ fontSize: 11 }}>
+                    · {totalCount} candidate{totalCount === 1 ? "" : "s"}
+                    {customItems.length > 0 && ` (${customItems.length} custom)`}
+                  </span>
                 </div>
                 <div className="text-caption mt-0.5">{meta.sublabel}</div>
               </div>
@@ -182,6 +290,119 @@ export function CandidatePicker({
                   </button>
                 );
               })}
+
+              {/* User-added customs render alongside research items */}
+              {customItems.map((it, i) => {
+                const isPicked = picked.has(it.name);
+                return (
+                  <div
+                    key={`custom-${i}-${it.name}`}
+                    role="button"
+                    tabIndex={disabled ? -1 : 0}
+                    aria-pressed={isPicked}
+                    onClick={() => toggle(cat, it.name)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        toggle(cat, it.name);
+                      }
+                    }}
+                    className="text-left rounded-card p-4 transition-all relative cursor-pointer"
+                    style={{
+                      background: isPicked ? "rgba(245,242,239,0.95)" : "#fff",
+                      boxShadow: isPicked
+                        ? "rgba(78,50,23,0.08) 0px 6px 16px, rgba(0,0,0,0.075) 0px 0px 0px 1px inset"
+                        : "rgba(0,0,0,0.06) 0px 0px 0px 1px, rgba(0,0,0,0.04) 0px 1px 2px",
+                      minHeight: 100,
+                      opacity: disabled ? 0.5 : 1,
+                    }}
+                  >
+                    {isPicked && (
+                      <span
+                        className="absolute top-2 right-2 h-5 w-5 rounded-full flex items-center justify-center text-white"
+                        style={{ background: "#000", fontSize: 11 }}
+                        aria-hidden
+                      >
+                        ✓
+                      </span>
+                    )}
+                    <div className="flex items-baseline gap-2 flex-wrap pr-6">
+                      <span className="text-[15px] font-medium" style={{ color: "#000", letterSpacing: "0.15px", lineHeight: 1.25 }}>
+                        {it.name}
+                      </span>
+                      <span
+                        className="text-[10px] px-1.5 py-0.5 rounded-full"
+                        style={{ background: "#bf6e3a", color: "#fff", letterSpacing: "0.7px", textTransform: "uppercase", fontWeight: 700 }}
+                      >
+                        custom
+                      </span>
+                      {it.city && (
+                        <span
+                          className="text-[10px] px-1.5 py-0.5 rounded-full"
+                          style={{ background: isPicked ? "#fff" : "rgba(245,242,239,0.9)", color: "#4e4e4e", letterSpacing: "0.7px", textTransform: "uppercase", fontWeight: 700 }}
+                        >
+                          {it.city}
+                        </span>
+                      )}
+                    </div>
+                    <div className="text-[13px] mt-1.5" style={{ color: "#4e4e4e", letterSpacing: "0.14px", lineHeight: 1.45 }}>
+                      Description fetched on Continue.
+                    </div>
+                    <div className="mt-3">
+                      <span
+                        role="link"
+                        tabIndex={disabled ? -1 : 0}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          if (!disabled) removeCustom(cat, it.name);
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            if (!disabled) removeCustom(cat, it.name);
+                          }
+                        }}
+                        className="text-[12px] underline cursor-pointer"
+                        style={{ color: "#777169", letterSpacing: "0.14px" }}
+                      >
+                        Remove
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+
+              {/* "+ Add custom" card */}
+              {addingFor === cat ? (
+                <CustomAddForm
+                  cityOptions={cityOptions}
+                  defaultCity={cityOptions.length === 1 ? cityOptions[0] : undefined}
+                  onCancel={() => setAddingFor(null)}
+                  onSave={(name, city) => addCustom(cat, name, city)}
+                  disabled={disabled}
+                />
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setAddingFor(cat)}
+                  disabled={disabled}
+                  className="rounded-card p-4 flex items-center justify-center gap-2 transition-colors"
+                  style={{
+                    minHeight: 100,
+                    border: "1.5px dashed rgba(78,50,23,0.25)",
+                    color: "#777169",
+                    background: "transparent",
+                    opacity: disabled ? 0.4 : 1,
+                  }}
+                  aria-label={`Add a custom ${meta.cat}`}
+                >
+                  <span style={{ fontSize: 18, lineHeight: 1 }}>+</span>
+                  <span className="text-[14px]" style={{ letterSpacing: "0.14px" }}>
+                    Add your own {meta.cat}
+                  </span>
+                </button>
+              )}
             </div>
           </section>
         );
@@ -195,6 +416,7 @@ export function CandidatePicker({
           {totalPicked === 0
             ? `No candidate preference — pipeline considers all ${totalAvail} equally`
             : `${totalPicked} prioritized · ${totalAvail - totalPicked} optional`}
+          {totalCustom > 0 && ` · ${totalCustom} custom`}
           {hasRoundTrip && (
             outbound || returnFlight
               ? ` · flights: ${outbound ? "go ✓" : "go —"}, ${returnFlight ? "back ✓" : "back —"}`
@@ -202,15 +424,22 @@ export function CandidatePicker({
                 ? " · flights: decide later"
                 : " · flights: not chosen"
           )}
+          {enriching && " · researching custom candidates…"}
+          {enrichErr && (
+            <span style={{ color: "#7c2d12" }}> · enrich failed: {enrichErr}</span>
+          )}
         </span>
         <div className="flex gap-2 flex-wrap">
-          <button onClick={onCancel} disabled={disabled} className="btn-secondary text-[14px] py-2 px-3">
+          <button onClick={onCancel} disabled={disabled || enriching} className="btn-secondary text-[14px] py-2 px-3">
             Back
           </button>
           {totalPicked > 0 && (
             <button
-              onClick={() => setPicks({ places: [], restaurants: [], hotels: [], arrival_choices: null })}
-              disabled={disabled}
+              onClick={() => {
+                setPicks({ places: [], restaurants: [], hotels: [], arrival_choices: null });
+                setCustoms({ places: [], restaurants: [], hotels: [] });
+              }}
+              disabled={disabled || enriching}
               className="btn-secondary text-[14px] py-2 px-3"
             >
               Clear selection
@@ -218,10 +447,10 @@ export function CandidatePicker({
           )}
           <button
             onClick={handleContinue}
-            disabled={disabled}
+            disabled={disabled || enriching}
             className="btn-warm"
           >
-            Continue planning
+            {enriching ? "Looking up customs…" : "Continue planning"}
             <span aria-hidden>→</span>
           </button>
         </div>
@@ -237,6 +466,89 @@ export function CandidatePicker({
     </div>
   );
 }
+
+function CustomAddForm({
+  cityOptions,
+  defaultCity,
+  onCancel,
+  onSave,
+  disabled,
+}: {
+  cityOptions: string[];
+  defaultCity?: string;
+  onCancel: () => void;
+  onSave: (name: string, city: string | undefined) => void;
+  disabled?: boolean;
+}) {
+  const [name, setName] = useState("");
+  const [city, setCity] = useState(defaultCity ?? "");
+  const showCity = cityOptions.length > 1;
+  return (
+    <div
+      className="rounded-card p-3 flex flex-col gap-2"
+      style={{
+        minHeight: 100,
+        border: "1.5px solid rgba(78,50,23,0.35)",
+        background: "rgba(245,242,239,0.6)",
+      }}
+    >
+      <input
+        type="text"
+        value={name}
+        autoFocus
+        placeholder="Name (e.g., Pontocho Alley)"
+        onChange={(e) => setName(e.target.value)}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" && name.trim()) {
+            e.preventDefault();
+            onSave(name, city || undefined);
+          } else if (e.key === "Escape") {
+            e.preventDefault();
+            onCancel();
+          }
+        }}
+        disabled={disabled}
+        className="w-full bg-transparent border-0 outline-none text-[14px] font-medium"
+        style={{ color: "#000", letterSpacing: "0.15px" }}
+      />
+      {showCity && (
+        <select
+          value={city}
+          onChange={(e) => setCity(e.target.value)}
+          disabled={disabled}
+          className="w-full bg-transparent border-0 outline-none text-[12px]"
+          style={{ color: "#4e4e4e", padding: "2px 0" }}
+        >
+          <option value="">Pick a city…</option>
+          {cityOptions.map((c) => (
+            <option key={c} value={c}>{c}</option>
+          ))}
+        </select>
+      )}
+      <div className="flex justify-end gap-2 mt-auto">
+        <button
+          type="button"
+          onClick={onCancel}
+          disabled={disabled}
+          className="text-[12px] px-2 py-1 rounded-full"
+          style={{ background: "transparent", color: "#777169" }}
+        >
+          Cancel
+        </button>
+        <button
+          type="button"
+          onClick={() => onSave(name, city || undefined)}
+          disabled={disabled || !name.trim()}
+          className="text-[12px] px-2.5 py-1 rounded-full"
+          style={{ background: "#000", color: "#fff", opacity: !name.trim() ? 0.4 : 1 }}
+        >
+          Add
+        </button>
+      </div>
+    </div>
+  );
+}
+
 
 function RoundTripPicker({
   outboundOpts,

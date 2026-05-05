@@ -71,6 +71,17 @@ class ReviseRequest(BaseModel):
     change: str
 
 
+class EnrichItem(BaseModel):
+    name: str
+    city: str | None = None
+    category: str  # "place" | "restaurant" | "hotel"
+
+
+class EnrichRequest(BaseModel):
+    items: list[EnrichItem]
+    destination: str | None = None  # fallback when item.city is missing
+
+
 class DetailRequest(BaseModel):
     name: str
     city: str | None = None
@@ -150,6 +161,48 @@ async def revise(req: ReviseRequest):
     planning pipeline so the UI can show which agent is running."""
     result = req.result or {"itinerary": req.itinerary or {}}
     return _sse(lambda: orchestrator.run_revise(result, req.change))
+
+
+@app.post("/enrich-candidates")
+async def enrich_candidates(req: EnrichRequest) -> dict:
+    """Look up each user-supplied custom candidate via Tavily and return a
+    short description so it can be merged into the research candidate set
+    before route/itinerary run.
+    Tavily calls are issued in parallel; one failure doesn't block the rest.
+    """
+    import asyncio as _asyncio
+
+    async def _enrich(item: EnrichItem) -> dict:
+        loc = item.city or req.destination or ""
+        if item.category == "hotel":
+            qbits = [item.name, loc, "hotel"]
+        elif item.category == "restaurant":
+            qbits = [item.name, loc, "restaurant"]
+        else:
+            qbits = [item.name, loc, "attraction"]
+        query = " ".join(b for b in qbits if b).strip()
+        try:
+            data = await tools.tavily_search(query, max_results=3)
+        except Exception:
+            data = {}
+        # Prefer Tavily's `answer` if present; else stitch first snippet.
+        desc = (data.get("answer") or "").strip()
+        if not desc:
+            for r in data.get("results") or []:
+                snip = (r.get("snippet") or "").strip()
+                if snip:
+                    desc = snip[:240]
+                    break
+        if not desc:
+            desc = f"User-added {item.category} in {loc or 'the trip'}."
+        # Keep descriptions concise so they look like the rest of research.
+        words = desc.split()
+        if len(words) > 40:
+            desc = " ".join(words[:40]) + "…"
+        return {"name": item.name, "city": item.city or req.destination, "description": desc}
+
+    enriched = await _asyncio.gather(*(_enrich(it) for it in req.items))
+    return {"items": list(enriched)}
 
 
 @app.post("/candidate-detail")

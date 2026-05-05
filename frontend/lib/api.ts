@@ -250,6 +250,26 @@ export interface CandidateDetail {
   sources: { title?: string; url?: string; snippet?: string }[];
 }
 
+export interface CustomCandidateInput {
+  name: string;
+  city?: string;
+  category: "place" | "restaurant" | "hotel";
+}
+
+export async function enrichCustomCandidates(
+  items: CustomCandidateInput[],
+  destination?: string,
+): Promise<Candidate[]> {
+  const res = await fetch(apiUrl("/enrich-candidates"), {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ items, destination: destination ?? null }),
+  });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const data = (await res.json()) as { items: Candidate[] };
+  return data.items;
+}
+
 export async function fetchCandidateDetail(
   name: string,
   city?: string,

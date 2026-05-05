@@ -19,6 +19,7 @@ import {
   streamBuild,
   streamRevise,
   Itinerary,
+  Candidate,
 } from "@/lib/api";
 import { DestinationPicker } from "@/components/DestinationPicker";
 import {
@@ -176,14 +177,30 @@ export default function Page() {
     await runResearchPhase(destResolution.preferences, destinations);
   };
 
-  const continueWithSelections = async (selections: Selections | null) => {
+  const continueWithSelections = async (
+    selections: Selections | null,
+    customs: { places: Candidate[]; restaurants: Candidate[]; hotels: Candidate[] } | null = null,
+  ) => {
     if (!research) return;
     setLastSelections(selections);
     setPhase("planning");
+    // If the picker collected user-added candidates, merge them into research
+    // so route + itinerary see them with their (Tavily-fetched) descriptions.
+    const mergedResearch = customs
+      ? {
+          ...research.research,
+          places: [...research.research.places, ...customs.places],
+          restaurants: [...research.research.restaurants, ...customs.restaurants],
+          hotels: [...research.research.hotels, ...customs.hotels],
+        }
+      : research.research;
+    if (customs) {
+      setResearch({ ...research, research: mergedResearch });
+    }
     try {
       for await (const ev of streamBuild(
         research.preferences,
-        research.research,
+        mergedResearch,
         research.arrival,
         selections,
       )) {
