@@ -1,10 +1,11 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { TripForm } from "@/components/TripForm";
 import { AgentProgress, StepState } from "@/components/AgentProgress";
 import { ItineraryView } from "@/components/ItineraryView";
 import { RevisionForm } from "@/components/RevisionForm";
 import { CandidatePicker } from "@/components/CandidatePicker";
+import { ResumePrompt } from "@/components/ResumePrompt";
 import {
   AgentName,
   Destination,
@@ -19,6 +20,13 @@ import {
   Itinerary,
 } from "@/lib/api";
 import { DestinationPicker } from "@/components/DestinationPicker";
+import {
+  clearSession,
+  loadSession,
+  newSessionId,
+  saveSession,
+  type SavedSession,
+} from "@/lib/session";
 
 type Phase =
   | "idle"
@@ -42,6 +50,49 @@ export default function Page() {
   const [errMsg, setErrMsg] = useState<string | null>(null);
   const [showPipeline, setShowPipeline] = useState(false);
   const [lastSelections, setLastSelections] = useState<Selections | null>(null);
+  const [resumePrompt, setResumePrompt] = useState<SavedSession | null>(null);
+  const sessionIdRef = useRef<string | null>(null);
+  const requestRef = useRef<string>("");
+
+  // On first mount, surface a saved unfinished session if there is one.
+  useEffect(() => {
+    const s = loadSession();
+    if (s) setResumePrompt(s);
+  }, []);
+
+  const persist = (
+    nextPhase: SavedSession["phase"],
+    overrides: Partial<SavedSession> = {},
+  ) => {
+    if (!sessionIdRef.current) sessionIdRef.current = newSessionId();
+    saveSession({
+      id: sessionIdRef.current,
+      request: requestRef.current,
+      phase: nextPhase,
+      destResolution: overrides.destResolution ?? destResolution,
+      research: overrides.research ?? research,
+      result: overrides.result ?? result,
+      lastSelections: overrides.lastSelections ?? lastSelections,
+    });
+  };
+
+  const handleContinueResume = () => {
+    if (!resumePrompt) return;
+    sessionIdRef.current = resumePrompt.id;
+    requestRef.current = resumePrompt.request;
+    if (resumePrompt.destResolution) setDestResolution(resumePrompt.destResolution);
+    if (resumePrompt.research) setResearch(resumePrompt.research);
+    if (resumePrompt.result) setResult(resumePrompt.result);
+    if (resumePrompt.lastSelections !== undefined) setLastSelections(resumePrompt.lastSelections ?? null);
+    setPhase(resumePrompt.phase);
+    setResumePrompt(null);
+  };
+
+  const handleDismissResume = () => {
+    clearSession();
+    sessionIdRef.current = null;
+    setResumePrompt(null);
+  };
 
   const handleStepEvent = (ev: { event: "step"; payload: { name: AgentName; status: "running" | "done"; output?: unknown; retry_round?: number } }) => {
     const { name, status, output } = ev.payload;
@@ -61,6 +112,10 @@ export default function Page() {
     setDestResolution(null);
     setMissing([]);
     setErrMsg(null);
+    // Fresh planning session — drop any prior saved checkpoint
+    clearSession();
+    sessionIdRef.current = newSessionId();
+    requestRef.current = request;
 
     try {
       for await (const ev of streamDestinations(request)) {
@@ -69,6 +124,7 @@ export default function Page() {
           setDestResolution(ev.payload);
           if (ev.payload.needs_resolution && ev.payload.suggester) {
             setPhase("choosing_destinations");
+            persist("choosing_destinations", { destResolution: ev.payload });
           } else {
             // Destinations already resolved by user prompt — auto-proceed.
             await runResearchPhase(ev.payload.preferences, ev.payload.destinations);
@@ -99,6 +155,7 @@ export default function Page() {
         else if (ev.event === "research_complete") {
           setResearch(ev.payload);
           setPhase("picking");
+          persist("picking", { research: ev.payload });
         } else if (ev.event === "incomplete") {
           setMissing(ev.payload.missing_fields);
           setPhase("incomplete");
@@ -140,6 +197,7 @@ export default function Page() {
         } else if (ev.event === "complete") {
           setResult(ev.payload);
           setPhase("done");
+          persist("done", { result: ev.payload, lastSelections: selections });
         } else if (ev.event === "error") {
           setErrMsg(`${ev.payload.type}: ${ev.payload.message}`);
           setPhase("error");
@@ -156,8 +214,10 @@ export default function Page() {
     setPhase("revising");
     try {
       const revised: Itinerary = await reviseItinerary(result.itinerary, change);
-      setResult({ ...result, itinerary: revised });
+      const nextResult = { ...result, itinerary: revised };
+      setResult(nextResult);
       setPhase("done");
+      persist("done", { result: nextResult });
     } catch (e) {
       setErrMsg(e instanceof Error ? e.message : String(e));
       setPhase("done");
@@ -174,10 +234,20 @@ export default function Page() {
     setErrMsg(null);
     setShowPipeline(false);
     setLastSelections(null);
+    clearSession();
+    sessionIdRef.current = null;
+    requestRef.current = "";
   };
 
   return (
     <main className="min-h-screen pb-24">
+      {resumePrompt && (
+        <ResumePrompt
+          session={resumePrompt}
+          onContinue={handleContinueResume}
+          onDismiss={handleDismissResume}
+        />
+      )}
       <Header onReset={reset} />
 
       <section className="px-6 pt-20 md:pt-28 pb-12">
