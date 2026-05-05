@@ -4,15 +4,6 @@ import { useEffect, useState } from "react";
 import { AgentName } from "@/lib/api";
 import { AGENT_LABELS, StepState } from "./AgentProgress";
 
-const HINT: Partial<Record<AgentName, string>> = {
-  itinerary: "the fine-tuned LoRA · 30–60 s",
-  route: "Cerebras · few seconds",
-  critic: "Cerebras · few seconds",
-  budget: "Cerebras + Tavily · few seconds",
-  revision: "Cerebras · ~1 s",
-  revision_router: "Cerebras · instant",
-};
-
 type Category = "text" | "structural" | "budget";
 
 const CATEGORY_AGENTS: Record<Category, AgentName[]> = {
@@ -112,9 +103,6 @@ export function RevisionProgress({ steps }: { steps: Map<AgentName, StepState> }
               </span>
               {isRunning && runningSince?.name === a && (
                 <span className="opacity-60">{fmt(elapsedMs)}</span>
-              )}
-              {HINT[a] && (isRunning || isDone) && (
-                <span className="opacity-50">· {HINT[a]}</span>
               )}
             </div>
           );
