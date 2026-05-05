@@ -251,6 +251,7 @@ async def run_build(
     aggregated_route_groups: dict[str, list[str]] = {}
     aggregated_meal_plan: dict[str, dict] = {}
     aggregated_transit_notes: dict[str, str] = {}
+    aggregated_day_schedule: dict[str, list] = {}
     day_offset = 0
     for leg in legs:
         city = leg["city"]
@@ -294,12 +295,16 @@ async def run_build(
                 aggregated_meal_plan[outer_key] = leg_route["meal_plan"][inner_key]
             if leg_route["transit_notes"].get(inner_key):
                 aggregated_transit_notes[outer_key] = leg_route["transit_notes"][inner_key]
+            sched = leg_route.get("day_schedule", {}).get(inner_key)
+            if isinstance(sched, list) and sched:
+                aggregated_day_schedule[outer_key] = sched
         day_offset += leg["days"]
 
     aggregated_route = {
         "route_groups": aggregated_route_groups,
         "meal_plan": aggregated_meal_plan,
         "transit_notes": aggregated_transit_notes,
+        "day_schedule": aggregated_day_schedule,
         "by_city": leg_routes,
     }
     yield {"event": "step", "payload": {"name": "route", "status": "done", "output": aggregated_route}}
@@ -523,6 +528,7 @@ async def run_build(
             "route_groups": aggregated_route_groups,
             "meal_plan": aggregated_meal_plan,
             "transit_notes": aggregated_transit_notes,
+            "day_schedule": aggregated_day_schedule,
             "budget": budget,
             "itinerary": itinerary,
             "critique": critique,

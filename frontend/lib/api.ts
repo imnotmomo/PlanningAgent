@@ -123,6 +123,10 @@ export interface DayMeals {
   dinner?: string;
 }
 
+export type ScheduleEntry =
+  | { type: "stop"; name: string; start?: string; end?: string; kind?: "attraction" | "lunch" | "dinner" | string }
+  | { type: "transit"; from: string; to: string; minutes?: number; mode?: string };
+
 export interface PlanResult {
   preferences: Record<string, unknown>;
   destinations?: Destination[];
@@ -133,6 +137,7 @@ export interface PlanResult {
   route_groups: Record<string, string[]>;
   meal_plan: Record<string, DayMeals>;
   transit_notes: Record<string, string>;
+  day_schedule?: Record<string, ScheduleEntry[]>;
   budget: {
     daily_estimate?: string;
     airfare_estimate?: string;

@@ -1,5 +1,5 @@
 "use client";
-import { Itinerary, Candidate, ArrivalData, ArrivalOption, DayMeals } from "@/lib/api";
+import { Itinerary, Candidate, ArrivalData, ArrivalOption, DayMeals, ScheduleEntry } from "@/lib/api";
 
 interface ItineraryViewProps {
   itinerary: Itinerary;
@@ -17,6 +17,7 @@ interface ItineraryViewProps {
   arrivalChoices?: { outbound: ArrivalOption | null; return: ArrivalOption | null } | null;
   mealPlan?: Record<string, DayMeals>;
   transitNotes?: Record<string, string>;
+  daySchedule?: Record<string, ScheduleEntry[]>;
   selectedHotels?: string[]; // names user picked (subset of hotels[])
 }
 
@@ -31,6 +32,7 @@ export function ItineraryView({
   transitNotes,
   selectedHotels,
   arrivalChoices,
+  daySchedule,
 }: ItineraryViewProps) {
   // Build a per-city -> chosen hotel map. If user picked one (or more), use
   // those; else pick the first candidate per city as a default.
@@ -66,6 +68,7 @@ export function ItineraryView({
             transitNotes?.[dayKeyCity] ||
             transitNotes?.[`Day ${d.day}`] ||
             d.transportation_note;
+          const schedule = daySchedule?.[dayKeyCity] || daySchedule?.[`Day ${d.day}`];
           return (
             <article key={d.day} className="card p-6">
               <div className="flex items-baseline justify-between gap-3 mb-2">
@@ -96,6 +99,14 @@ export function ItineraryView({
                       {hotelByCity[d.city].description.split(/\s+/).slice(0, 8).join(" ") + "…"}
                     </span>
                   )}
+                </div>
+              )}
+              {schedule && schedule.length > 0 && (
+                <div className="mb-4">
+                  <div className="text-[11px] mb-2" style={{ color: "#777169", letterSpacing: "0.7px", textTransform: "uppercase", fontWeight: 700 }}>
+                    Timeline
+                  </div>
+                  <ScheduleTimeline entries={schedule} />
                 </div>
               )}
               <div className="flex flex-col gap-3">
@@ -300,6 +311,65 @@ export function ItineraryView({
         </section>
       )}
     </div>
+  );
+}
+
+function ScheduleTimeline({ entries }: { entries: ScheduleEntry[] }) {
+  return (
+    <ol className="flex flex-col gap-0">
+      {entries.map((e, i) => {
+        if (e.type === "transit") {
+          return (
+            <li key={i} className="pl-[68px] py-1 relative">
+              <span
+                className="absolute left-[26px] top-0 bottom-0 w-px"
+                style={{ background: "#e5e5e5" }}
+                aria-hidden
+              />
+              <span className="text-caption" style={{ color: "#777169" }}>
+                ↓ {e.mode || "transit"}
+                {typeof e.minutes === "number" && ` · ${e.minutes} min`}
+                <span className="opacity-60"> · {e.from} → {e.to}</span>
+              </span>
+            </li>
+          );
+        }
+        const start = e.start || "";
+        const end = e.end || "";
+        const kindStyle =
+          e.kind === "lunch" || e.kind === "dinner"
+            ? { color: "#000", fontWeight: 600 }
+            : { color: "#000" };
+        return (
+          <li key={i} className="flex items-baseline gap-3 py-1">
+            <span
+              className="text-caption shrink-0"
+              style={{ color: "#000", fontVariantNumeric: "tabular-nums", minWidth: 56 }}
+            >
+              {start}
+              {end && <span style={{ color: "#777169" }}>{" – " + end}</span>}
+            </span>
+            <span className="text-[14px]" style={kindStyle}>
+              {e.name}
+              {e.kind && e.kind !== "attraction" && (
+                <span
+                  className="ml-2 text-[10px] px-1.5 py-0.5 rounded-full"
+                  style={{
+                    background: "rgba(245,242,239,0.9)",
+                    color: "#4e4e4e",
+                    letterSpacing: "0.7px",
+                    textTransform: "uppercase",
+                    fontWeight: 700,
+                  }}
+                >
+                  {e.kind}
+                </span>
+              )}
+            </span>
+          </li>
+        );
+      })}
+    </ol>
   );
 }
 

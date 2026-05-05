@@ -465,16 +465,47 @@ PROCESS:
 3. Write a 1-2 sentence transit note per day in the style required by the
    budget tier.
 
+DAY SCHEDULE (timeline) — for each day also output a chronological list of
+clock-timed entries covering hotel-out, every attraction, lunch (~12:00-14:00),
+dinner (~18:30-21:00), and the transit between EVERY consecutive pair.
+
+Each schedule entry is one of:
+  {"type": "stop",    "name": str, "start": "HH:MM", "end": "HH:MM",
+                      "kind": "attraction"|"lunch"|"dinner"}
+  {"type": "transit", "from": str, "to": str,
+                      "minutes": int, "mode": str}
+
+Time anchors (REQUIRED — do not violate):
+  - Hotel-out / first transit: ~09:00
+  - Lunch: between **12:00 and 14:00**, lasting 60-90 min
+  - Afternoon attraction(s): between lunch end and ~17:30
+  - Dinner: between **18:30 and 21:00**, lasting 90-120 min
+                 (longer for kaiseki/Michelin/luxury tier)
+  - Last transit (return to hotel): right after dinner
+
+Duration heuristics:
+  - typical attraction visit: 60-120 min (temples 60-90, big museums 90-150,
+    quick photo stops 30, hikes/parks 90-180)
+  - walking: 5-20 min in compact areas
+  - subway/bus: 15-45 min between districts of the same city
+  - Uber/taxi: 10-30 min between most pairs
+
+If a relaxed pace doesn't fill the afternoon, leave a free gap (just no entry
+between, say, 16:00 and 18:00) — DO NOT compress dinner earlier than 18:30.
+Use the `hotel_name` from input as the hotel reference if provided.
+
 Output JSON with EXACTLY these keys:
 {
-  "route_groups": {"Day 1": [attraction_names...], ...},   // ATTRACTIONS only
-  "meal_plan":    {"Day 1": {"lunch": str, "dinner": str}, ...},
-  "transit_notes":{"Day 1": str, ...}
+  "route_groups":  {"Day 1": [attraction_names...], ...},   // ATTRACTIONS only
+  "meal_plan":     {"Day 1": {"lunch": str, "dinner": str}, ...},
+  "transit_notes": {"Day 1": str, ...},
+  "day_schedule":  {"Day 1": [<timeline entries>], ...}
 }
 
 Use exactly `trip_length_days` keys in each section. Names in route_groups
 must come from the input `attractions` list. Names in meal_plan must come
-from the input `restaurants` list. Do NOT include hotels in route_groups."""
+from the input `restaurants` list. Day_schedule entries reference the same
+names plus the hotel. Do NOT include hotels in route_groups."""
 
 
 async def route_agent(
@@ -521,6 +552,7 @@ async def route_agent(
         "route_groups": _ensure_dict(obj.get("route_groups")),
         "meal_plan": _ensure_dict(obj.get("meal_plan")),
         "transit_notes": _ensure_dict(obj.get("transit_notes")),
+        "day_schedule": _ensure_dict(obj.get("day_schedule")),
     }
 
 

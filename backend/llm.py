@@ -38,9 +38,13 @@ orchestrator = AsyncOpenAI(base_url=ORCH_BASE_URL, api_key=ORCH_API_KEY)
 itinerary = AsyncOpenAI(base_url=ITIN_BASE_URL, api_key=ITIN_API_KEY)
 
 
-# Qwen3 thinking-mode suppression. The MLX server we use accepts this via the
-# OpenAI SDK's extra_body. Has no effect on non-Qwen3 servers (silently ignored).
-NO_THINK_EXTRA = {"chat_template_kwargs": {"enable_thinking": False}}
+# Qwen3 thinking-mode suppression. The MLX server accepts it via extra_body;
+# Cerebras and similar strict providers reject unknown fields, so only send
+# it when the orchestrator model is actually a Qwen variant.
+_IS_QWEN_ORCH = ORCH_MODEL.lower().startswith("qwen")
+NO_THINK_EXTRA: dict[str, Any] = (
+    {"chat_template_kwargs": {"enable_thinking": False}} if _IS_QWEN_ORCH else {}
+)
 
 
 async def orch_complete(

@@ -271,6 +271,7 @@ export default function Page() {
                   arrival={result.arrival}
                   mealPlan={result.meal_plan}
                   transitNotes={result.transit_notes}
+                  daySchedule={result.day_schedule}
                   selectedHotels={lastSelections?.hotels}
                   arrivalChoices={lastSelections?.arrival_choices ?? null}
                 />
