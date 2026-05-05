@@ -788,11 +788,18 @@ async def itinerary_agent(prefs: dict, places: list[str], route_groups: dict) ->
 
 CRITIC_SYSTEM = """You critique a travel itinerary and SCORE it 0-10.
 
+You receive `itinerary`, `prefs`, AND `budget` (a computed object with
+`daily_estimate`, `airfare_estimate`, `total_estimate`, `notes`). Use the
+`budget` numbers — not the itinerary's prose — for any total-cost check.
+
 Check for:
 - Rushed days (count attractions per day vs. pace: relaxed=1-2, medium=2-3,
   packed=3-4 — restaurants don't count toward this cap)
 - Places too far apart (geographic incoherence on the same day)
-- Budget violations (total mismatched with budget_level)
+- Budget alignment: compare `budget.total_estimate` against `prefs.budget_level`
+  (low ≈ <$120/day excl. airfare, medium ≈ $120-$300/day, high ≈ $300-$600/day,
+  luxury ≈ $600+/day). Don't flag the itinerary's `budget_summary` for being
+  short — totals come from `budget`, not the itinerary text.
 - Unaddressed user interests
 - Missed constraints (transit preference, mobility, dietary, etc.)
 - Day-to-day flow problems (lodging changes, long transfers between cities)
@@ -817,8 +824,8 @@ Be terse. Output JSON only.
 """
 
 
-async def critic_agent(itinerary: dict, prefs: dict) -> dict:
-    payload = json.dumps({"itinerary": itinerary, "prefs": prefs})
+async def critic_agent(itinerary: dict, prefs: dict, budget: dict | None = None) -> dict:
+    payload = json.dumps({"itinerary": itinerary, "prefs": prefs, "budget": budget or {}})
     raw = await orch_complete(CRITIC_SYSTEM, payload, response_format_json=True)
     obj = _extract_json(raw)
     if not isinstance(obj, dict):

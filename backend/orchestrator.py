@@ -389,7 +389,7 @@ async def run_build(
 
     # ----- critic (whole trip) with retry-replan if score < 7 -----
     yield {"event": "step", "payload": {"name": "critic", "status": "running"}}
-    critique = await agents.critic_agent(itinerary, prefs)
+    critique = await agents.critic_agent(itinerary, prefs, budget=budget)
     yield {"event": "step", "payload": {"name": "critic", "status": "done", "output": critique}}
 
     # When critic fails, re-run route + itinerary across all legs with the
@@ -512,7 +512,7 @@ async def run_build(
 
         # ---- Re-critic ----
         yield {"event": "step", "payload": {"name": "critic", "status": "running", "is_retry": True, "retry_round": retries}}
-        critique = await agents.critic_agent(itinerary, prefs)
+        critique = await agents.critic_agent(itinerary, prefs, budget=budget)
         yield {"event": "step", "payload": {"name": "critic", "status": "done", "output": critique, "is_retry": True, "retry_round": retries}}
 
     yield {
