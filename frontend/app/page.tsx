@@ -195,9 +195,11 @@ export default function Page() {
             return next;
           });
         } else if (ev.event === "complete") {
-          setResult(ev.payload);
+          // /build always emits a full PlanResult; streamRevise narrows in its own handler
+          const planResult = ev.payload as PlanResult;
+          setResult(planResult);
           setPhase("done");
-          persist("done", { result: ev.payload, lastSelections: selections });
+          persist("done", { result: planResult, lastSelections: selections });
         } else if (ev.event === "error") {
           setErrMsg(`${ev.payload.type}: ${ev.payload.message}`);
           setPhase("error");
