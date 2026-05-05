@@ -76,6 +76,8 @@ The merged model is **published on Hugging Face** as [`aquaqua/tripwise-7b-merge
 
 ## Live deployment
 
+> **Access restricted.** The live site is gated by **Cloudflare Access**: a valid `@columbia.edu` email is required to log in. Cloudflare sends a one-time PIN to the address; once verified, the session lasts 24 hours. Visitors without a Columbia email will see Cloudflare's "Access denied" page before any request reaches the Ubuntu host.
+
 Frontend + backend on a DigitalOcean Ubuntu droplet, the LoRA itinerary model on the developer's Mac, bridged by a Cloudflare tunnel:
 
 ```
@@ -99,7 +101,8 @@ Frontend + backend on a DigitalOcean Ubuntu droplet, the LoRA itinerary model on
 ```
 
 Components:
-- **Public domain**: `trip.23333.info` is a plain DNS A-record → 159.223.182.62.
+- **Public domain**: `trip.23333.info` is fronted by **Cloudflare** (proxied A-record → 159.223.182.62), so traffic flows through Cloudflare's edge before reaching the Ubuntu host. This is what enables the Access-gated login.
+- **Cloudflare Access policy**: a self-hosted application bound to `trip.23333.info` with an **email-domain rule** allowing only `*@columbia.edu`. Identity provider is Cloudflare's built-in **One-Time PIN**, so no Google/GitHub login is required — just a Columbia email that can receive a 6-digit code.
 - **Nginx** terminates TLS (Let's Encrypt, auto-renewing via `certbot.timer`), proxies `/api/` to FastAPI with SSE-friendly buffering disabled, and `/` to Next.js.
 - **Cloudflare tunnel** runs on the Mac, exposing `localhost:5620` (oMLX) at `https://taxagent.23333.info`. The Ubuntu backend's `ITIN_BASE_URL` points at this URL.
 - **Two systemd services** (`planningagent-backend`, `planningagent-frontend`) restart automatically on reboot.
