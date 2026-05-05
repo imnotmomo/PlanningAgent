@@ -242,6 +242,11 @@ export default function Page() {
             transit_notes?: typeof result.transit_notes;
             day_schedule?: typeof result.day_schedule;
             critique?: typeof result.critique;
+            // budget-tier path also re-researches and updates prefs
+            places?: typeof result.places;
+            restaurants?: typeof result.restaurants;
+            hotels?: typeof result.hotels;
+            preferences?: typeof result.preferences;
           };
           nextResult = {
             ...result,
@@ -252,6 +257,10 @@ export default function Page() {
             ...(p.transit_notes ? { transit_notes: p.transit_notes } : {}),
             ...(p.day_schedule ? { day_schedule: p.day_schedule } : {}),
             ...(p.critique ? { critique: p.critique } : {}),
+            ...(p.places ? { places: p.places } : {}),
+            ...(p.restaurants ? { restaurants: p.restaurants } : {}),
+            ...(p.hotels ? { hotels: p.hotels } : {}),
+            ...(p.preferences ? { preferences: p.preferences } : {}),
           };
           setResult(nextResult);
           setPhase("done");

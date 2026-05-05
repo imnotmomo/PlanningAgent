@@ -931,12 +931,23 @@ current itinerary. Pick exactly one category:
                   pace or order of cities/days, swapping a place that's
                   geographically distant from current ones, time-window
                   changes (e.g., must end by 6pm), changing the trip length.
-- "budget"      — change is primarily about money: "make it cheaper",
-                  "stay under $X/day", "upgrade to luxury hotels", "drop the
-                  high-end dinner". The day shape stays the same; price
-                  tier shifts.
+- "budget"      — the user shifts the price tier of the trip: "make it
+                  cheaper", "stay under $X/day", "upgrade to luxury hotels",
+                  "drop the high-end dinner", "private jet". This category
+                  triggers a FULL re-research at the new tier (different
+                  hotels, restaurants, places) — not just a math recompute.
+                  Always also output `new_budget_level` for this category.
 
-Output JSON: {"category": "text"|"structural"|"budget", "reason": "<one short sentence>"}
+For "budget" infer the new tier from the change:
+  low     ≈ <$150/day       (hostels, budget chains, casual dining, public transit)
+  medium  ≈ $300-$500/day   (3-4 star, mid-range restaurants, mix of metro + Uber)
+  high    ≈ $500-$800/day   (4-5 star, fine dining, mostly Uber/private cars)
+  luxury  ≈ $800+/day       (5-star, Michelin, chauffeur, business/first flights)
+
+Output JSON:
+  {"category": "text"|"structural"|"budget",
+   "reason": "<one short sentence>",
+   "new_budget_level": "low"|"medium"|"high"|"luxury"  (only for budget)}
 """
 
 
@@ -952,4 +963,9 @@ async def revision_router(itinerary: dict, change_request: str) -> dict:
     cat = obj.get("category")
     if cat not in ("text", "structural", "budget"):
         cat = "text"
-    return {"category": cat, "reason": str(obj.get("reason") or "")[:200]}
+    out = {"category": cat, "reason": str(obj.get("reason") or "")[:200]}
+    if cat == "budget":
+        tier = obj.get("new_budget_level")
+        if tier in ("low", "medium", "high", "luxury"):
+            out["new_budget_level"] = tier
+    return out

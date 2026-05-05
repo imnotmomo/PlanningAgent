@@ -18,13 +18,13 @@ type Category = "text" | "structural" | "budget";
 const CATEGORY_AGENTS: Record<Category, AgentName[]> = {
   text:       ["revision_router", "revision"],
   structural: ["revision_router", "route", "itinerary", "critic"],
-  budget:     ["revision_router", "budget", "revision"],
+  budget:     ["revision_router", "research", "route", "itinerary", "budget", "critic"],
 };
 
 const CATEGORY_DESC: Record<Category, string> = {
   text:       "rephrase only — Cerebras edit, no LoRA",
-  structural: "re-shape day plan — runs route + LoRA itinerary + critic",
-  budget:     "recompute totals — budget agent + Cerebras edit",
+  structural: "re-shape day plan — route + LoRA itinerary + critic",
+  budget:     "tier shift — re-research at new tier, then route + LoRA itinerary + budget + critic",
 };
 
 function fmt(ms: number): string {

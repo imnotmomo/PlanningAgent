@@ -703,21 +703,105 @@ async def run_revise(result: dict, change: str) -> AsyncIterator[dict]:
         return
 
     # category == "budget"
+    # A budget tier shift means the actual hotels/restaurants/places at the
+    # new tier are different — recomputing totals over the existing
+    # candidates would be wrong. Re-research at the new tier, then re-run
+    # route + itinerary + critic + budget like a fresh build.
+    new_tier = decision.get("new_budget_level") or prefs.get("budget_level") or "medium"
+    new_prefs = dict(prefs)
+    new_prefs["budget_level"] = new_tier
+    new_prefs["constraints"] = list(prefs.get("constraints") or []) + [f"BUDGET CHANGE: {change}"]
+
+    destinations = result.get("destinations") or []
+    if not destinations:
+        destinations = [{
+            "city": prefs.get("destination") or "trip",
+            "days": int(prefs.get("trip_length_days") or len(itinerary.get("daily_itinerary") or []) or 1),
+        }]
+
+    # Re-research per leg at the new tier (parallel)
+    yield {"event": "step", "payload": {"name": "research", "status": "running"}}
+    leg_research = []
+    research_coros = []
+    for leg in destinations:
+        leg_prefs = dict(new_prefs)
+        leg_prefs["destination"] = leg.get("city") or new_prefs.get("destination")
+        leg_prefs["trip_length_days"] = int(leg.get("days") or 0) or new_prefs.get("trip_length_days")
+        research_coros.append(agents.research_agent(leg_prefs))
+    leg_research = await asyncio.gather(*research_coros)
+    aggregated_places: list[dict] = []
+    aggregated_restaurants: list[dict] = []
+    aggregated_hotels: list[dict] = []
+    for leg, r in zip(destinations, leg_research):
+        for p in r.get("places") or []:
+            if isinstance(p, dict):
+                p.setdefault("city", leg.get("city"))
+                aggregated_places.append(p)
+        for r_ in r.get("restaurants") or []:
+            if isinstance(r_, dict):
+                r_.setdefault("city", leg.get("city"))
+                aggregated_restaurants.append(r_)
+        for h in r.get("hotels") or []:
+            if isinstance(h, dict):
+                h.setdefault("city", leg.get("city"))
+                aggregated_hotels.append(h)
+    yield {"event": "step", "payload": {"name": "research", "status": "done", "output": {
+        "places": aggregated_places, "restaurants": aggregated_restaurants, "hotels": aggregated_hotels,
+    }}}
+
+    new_place_names = _names(aggregated_places)
+    new_restaurant_names = _names(aggregated_restaurants)
+    new_hotel_names = _names(aggregated_hotels)
+    new_hotel = new_hotel_names[0] if new_hotel_names else None
+    trip_length_days = sum(int(d.get("days", 0) or 0) for d in destinations) or int(new_prefs.get("trip_length_days") or 1)
+    destination_label = ", ".join(d.get("city", "") for d in destinations if d.get("city")) or new_prefs.get("destination") or "trip"
+
+    yield {"event": "step", "payload": {"name": "route", "status": "running"}}
+    route_data = await agents.route_agent(
+        attractions=new_place_names,
+        restaurants=new_restaurant_names,
+        trip_length_days=trip_length_days,
+        destination=destination_label,
+        pace=new_prefs.get("pace", "medium"),
+        interests=new_prefs.get("interests", []),
+        budget_level=new_tier,
+        hotel_name=new_hotel,
+        feedback=change,
+    )
+    yield {"event": "step", "payload": {"name": "route", "status": "done", "output": route_data}}
+
+    yield {"event": "step", "payload": {"name": "itinerary", "status": "running"}}
+    new_itin = await agents.itinerary_agent(
+        new_prefs, new_place_names + new_restaurant_names, route_data.get("route_groups", {})
+    )
+    rev_tips = await agents.tips_agent(new_itin, new_prefs)
+    if rev_tips:
+        new_itin["travel_tips"] = rev_tips
+    yield {"event": "step", "payload": {"name": "itinerary", "status": "done"}}
+
     yield {"event": "step", "payload": {"name": "budget", "status": "running"}}
-    prefs_for_budget = dict(prefs)
-    prefs_for_budget["constraints"] = list(prefs.get("constraints") or []) + [f"BUDGET CHANGE: {change}"]
     new_budget = await agents.budget_agent(
-        prefs_for_budget, place_names + restaurant_names, arrival=arrival
+        new_prefs, new_place_names + new_restaurant_names, arrival=arrival
     )
     yield {"event": "step", "payload": {"name": "budget", "status": "done", "output": new_budget}}
 
-    yield {"event": "step", "payload": {"name": "revision", "status": "running"}}
-    new_itin = await agents.revision_agent(itinerary, change)
-    yield {"event": "step", "payload": {"name": "revision", "status": "done"}}
+    yield {"event": "step", "payload": {"name": "critic", "status": "running"}}
+    critique = await agents.critic_agent(new_itin, new_prefs, budget=new_budget)
+    yield {"event": "step", "payload": {"name": "critic", "status": "done", "output": critique}}
 
     yield {"event": "complete", "payload": {
         "category": category,
         "reason": decision["reason"],
+        "new_budget_level": new_tier,
         "itinerary": new_itin,
         "budget": new_budget,
+        "places": aggregated_places,
+        "restaurants": aggregated_restaurants,
+        "hotels": aggregated_hotels,
+        "route_groups": route_data.get("route_groups", {}),
+        "meal_plan": route_data.get("meal_plan", {}),
+        "transit_notes": route_data.get("transit_notes", {}),
+        "day_schedule": route_data.get("day_schedule", {}),
+        "critique": critique,
+        "preferences": new_prefs,
     }}
