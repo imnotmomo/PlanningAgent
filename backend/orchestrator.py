@@ -639,33 +639,56 @@ async def run_revise(result: dict, change: str) -> AsyncIterator[dict]:
         destination_label = ", ".join(d.get("city", "") for d in destinations if d.get("city")) \
             or prefs.get("destination") or "trip"
 
-        yield {"event": "step", "payload": {"name": "route", "status": "running"}}
-        route_data = await agents.route_agent(
-            attractions=place_names,
-            restaurants=restaurant_names,
-            trip_length_days=trip_length_days,
-            destination=destination_label,
-            pace=prefs.get("pace", "medium"),
-            interests=prefs.get("interests", []),
-            budget_level=prefs.get("budget_level", "medium"),
-            hotel_name=hotel_name,
-            feedback=change,
-        )
-        yield {"event": "step", "payload": {"name": "route", "status": "done", "output": route_data}}
+        # First pass uses the user's change as feedback. If the critic fails
+        # we run another round with the critic's issues appended to the
+        # feedback, mirroring the planning path's replan loop.
+        feedback = change
+        new_itin: dict = {}
+        route_data: dict = {}
+        critique: dict = {}
+        MAX_REVISE_RETRIES = 2
+        for attempt in range(MAX_REVISE_RETRIES + 1):
+            is_retry = attempt > 0
+            retry_evt = {"is_retry": True, "retry_round": attempt} if is_retry else {}
 
-        yield {"event": "step", "payload": {"name": "itinerary", "status": "running"}}
-        new_itin = await agents.itinerary_agent(
-            prefs, place_names + restaurant_names, route_data.get("route_groups", {})
-        )
-        # Replace the LoRA's templated tips with itinerary-specific ones
-        rev_tips = await agents.tips_agent(new_itin, prefs)
-        if rev_tips:
-            new_itin["travel_tips"] = rev_tips
-        yield {"event": "step", "payload": {"name": "itinerary", "status": "done"}}
+            yield {"event": "step", "payload": {"name": "route", "status": "running", **retry_evt}}
+            route_data = await agents.route_agent(
+                attractions=place_names,
+                restaurants=restaurant_names,
+                trip_length_days=trip_length_days,
+                destination=destination_label,
+                pace=prefs.get("pace", "medium"),
+                interests=prefs.get("interests", []),
+                budget_level=prefs.get("budget_level", "medium"),
+                hotel_name=hotel_name,
+                feedback=feedback,
+            )
+            yield {"event": "step", "payload": {"name": "route", "status": "done", "output": route_data, **retry_evt}}
 
-        yield {"event": "step", "payload": {"name": "critic", "status": "running"}}
-        critique = await agents.critic_agent(new_itin, prefs, budget=result.get("budget") or {})
-        yield {"event": "step", "payload": {"name": "critic", "status": "done", "output": critique}}
+            yield {"event": "step", "payload": {"name": "itinerary", "status": "running", **retry_evt}}
+            new_itin = await agents.itinerary_agent(
+                prefs, place_names + restaurant_names, route_data.get("route_groups", {})
+            )
+            rev_tips = await agents.tips_agent(new_itin, prefs)
+            if rev_tips:
+                new_itin["travel_tips"] = rev_tips
+            yield {"event": "step", "payload": {"name": "itinerary", "status": "done", **retry_evt}}
+
+            yield {"event": "step", "payload": {"name": "critic", "status": "running", **retry_evt}}
+            critique = await agents.critic_agent(new_itin, prefs, budget=result.get("budget") or {})
+            yield {"event": "step", "payload": {"name": "critic", "status": "done", "output": critique, **retry_evt}}
+
+            if critique.get("passed", True) or attempt == MAX_REVISE_RETRIES:
+                break
+            # Append critic feedback for next round, keeping original change first.
+            issues = "; ".join(critique.get("issues") or [])
+            sugg = "; ".join(critique.get("suggested_revisions") or [])
+            feedback = (
+                f"User change: {change}\n"
+                f"Previous attempt failed critic ({critique.get('score')}/10).\n"
+                f"Issues: {issues}\n"
+                f"Suggested fixes: {sugg}"
+            )
 
         yield {"event": "complete", "payload": {
             "category": category,

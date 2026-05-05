@@ -228,57 +228,9 @@ export function ItineraryView({
         </section>
       ) : null}
 
-      {critique && (
-        <section className="card p-6" style={{ background: "rgba(245,242,239,0.55)" }}>
-          <div className="flex items-baseline justify-between gap-3 mb-3 flex-wrap">
-            <div className="text-uppercase-cta" style={{ color: "#777169" }}>
-              Critic
-            </div>
-            {typeof critique.score === "number" && (
-              <span
-                className="text-[12px] px-2.5 py-1 rounded-full font-medium"
-                style={{
-                  background: critique.passed ? "#000" : "#7c2d12",
-                  color: "#fff",
-                  letterSpacing: "0.7px",
-                  textTransform: "uppercase",
-                }}
-              >
-                {critique.score}/10 · {critique.passed ? "passed" : "failed"}
-              </span>
-            )}
-          </div>
-          {critique.issues.length === 0 ? (
-            <div className="text-body" style={{ fontSize: 16 }}>
-              No issues found.
-            </div>
-          ) : (
-            <ul className="flex flex-col gap-2">
-              {critique.issues.map((issue, i) => (
-                <li key={i} className="text-body" style={{ fontSize: 16 }}>
-                  · {issue}
-                </li>
-              ))}
-            </ul>
-          )}
-          {critique.suggested_revisions && critique.suggested_revisions.length > 0 && (
-            <div className="mt-4">
-              <div className="text-caption mb-2">Suggested fixes</div>
-              <div className="flex flex-wrap gap-2">
-                {critique.suggested_revisions.map((s, i) => (
-                  <span
-                    key={i}
-                    className="text-[13px] px-2.5 py-1 rounded-full bg-white"
-                    style={{ color: "#4e4e4e", letterSpacing: "0.14px" }}
-                  >
-                    {s}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
-        </section>
-      )}
+      {/* Critic feedback is intentionally not rendered here. It still drives
+          the replan loop in the orchestrator (and the retry pill in the
+          pipeline panel), but the user sees the final passing plan. */}
     </div>
   );
 }
