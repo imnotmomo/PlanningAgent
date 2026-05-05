@@ -390,7 +390,11 @@ export default function Page() {
                   selectedHotels={lastSelections?.hotels}
                   arrivalChoices={lastSelections?.arrival_choices ?? null}
                 />
-                {phase === "revising" && (
+                {/* Show the revision progress whenever the revision pipeline
+                    has fired at least once. It stays in "Finished" state after
+                    a revision completes so the user gets a clear applied cue
+                    even on the fast text-only path (~1 s). */}
+                {steps.has("revision_router") && (
                   <RevisionProgress steps={steps} />
                 )}
                 <RevisionForm onSubmit={applyRevision} disabled={phase === "revising"} />

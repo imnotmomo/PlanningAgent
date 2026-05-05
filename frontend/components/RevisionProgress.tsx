@@ -5,12 +5,26 @@ import { AgentName } from "@/lib/api";
 import { AGENT_LABELS, StepState } from "./AgentProgress";
 
 const HINT: Partial<Record<AgentName, string>> = {
-  itinerary: "the fine-tuned model can take 30–60 sec",
-  route: "few seconds",
-  critic: "few seconds",
-  budget: "few seconds",
-  revision: "a few seconds",
-  revision_router: "instant",
+  itinerary: "the fine-tuned LoRA · 30–60 s",
+  route: "Cerebras · few seconds",
+  critic: "Cerebras · few seconds",
+  budget: "Cerebras + Tavily · few seconds",
+  revision: "Cerebras · ~1 s",
+  revision_router: "Cerebras · instant",
+};
+
+type Category = "text" | "structural" | "budget";
+
+const CATEGORY_AGENTS: Record<Category, AgentName[]> = {
+  text:       ["revision_router", "revision"],
+  structural: ["revision_router", "route", "itinerary", "critic"],
+  budget:     ["revision_router", "budget", "revision"],
+};
+
+const CATEGORY_DESC: Record<Category, string> = {
+  text:       "rephrase only — Cerebras edit, no LoRA",
+  structural: "re-shape day plan — runs route + LoRA itinerary + critic",
+  budget:     "recompute totals — budget agent + Cerebras edit",
 };
 
 function fmt(ms: number): string {
@@ -23,9 +37,13 @@ export function RevisionProgress({ steps }: { steps: Map<AgentName, StepState> }
   const [now, setNow] = useState(Date.now());
   const [runningSince, setRunningSince] = useState<{ name: AgentName; t0: number } | null>(null);
 
-  // Pick the currently-running step. When it changes, reset the timer.
+  const router = steps.get("revision_router");
+  const routerOut = router?.output as { category?: Category; reason?: string } | undefined;
+  const category = routerOut?.category;
+  const reason = routerOut?.reason;
+  const agents = category ? CATEGORY_AGENTS[category] : ["revision_router" as AgentName];
+
   const running = Array.from(steps.values()).find((s) => s.status === "running");
-  const lastDone = Array.from(steps.values()).filter((s) => s.status === "done").slice(-1)[0];
 
   useEffect(() => {
     if (running) {
@@ -37,40 +55,76 @@ export function RevisionProgress({ steps }: { steps: Map<AgentName, StepState> }
     }
   }, [running?.name]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Tick once per second so the elapsed counter updates
   useEffect(() => {
     if (!running) return;
     const id = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(id);
   }, [running]);
 
-  const showStep = running ?? lastDone;
-  if (!showStep) return null;
-  const isRunning = !!running;
-  const elapsedMs = isRunning && runningSince ? now - runningSince.t0 : 0;
+  const elapsedMs = running && runningSince ? now - runningSince.t0 : 0;
+  const allDone = !running && agents.every((a) => steps.get(a)?.status === "done");
 
   return (
-    <div
-      className="card-section px-4 py-3 flex items-center gap-3 text-[14px] flex-wrap"
-      style={{ color: "#4e4e4e" }}
-    >
-      <span
-        className="inline-block h-2 w-2 rounded-full"
-        style={{
-          backgroundColor: isRunning ? "#bf6e3a" : "#7aa274",
-          animation: isRunning ? "pulse 1.4s ease-in-out infinite" : undefined,
-        }}
-      />
-      <span className="font-medium">
-        {isRunning ? "Running" : "Finished"}: {AGENT_LABELS[showStep.name]}
-      </span>
-      {isRunning && (
-        <>
-          <span className="opacity-60 text-[13px]">· {fmt(elapsedMs)}</span>
-          {HINT[showStep.name] && (
-            <span className="opacity-60 text-[13px]">· {HINT[showStep.name]}</span>
-          )}
-        </>
+    <div className="card p-4 space-y-3">
+      {/* header line — path + reason */}
+      <div className="flex items-baseline gap-2 flex-wrap">
+        <span className="text-uppercase-cta" style={{ color: "#777169" }}>
+          Revision pipeline
+        </span>
+        {category ? (
+          <>
+            <span className="text-[14px] font-medium text-ink">path: {category}</span>
+            <span className="text-[13px] text-warm">— {CATEGORY_DESC[category]}</span>
+          </>
+        ) : (
+          <span className="text-[13px] text-warm">deciding which agents to run…</span>
+        )}
+      </div>
+      {reason && (
+        <div className="text-[13px]" style={{ color: "#7a7a7a", lineHeight: 1.5 }}>
+          {reason}
+        </div>
+      )}
+
+      {/* per-agent status row */}
+      <div className="flex flex-wrap gap-2">
+        {agents.map((a) => {
+          const s = steps.get(a);
+          const status = s?.status ?? "pending";
+          const isRunning = status === "running";
+          const isDone = status === "done";
+          const dot = isRunning ? "#bf6e3a" : isDone ? "#7aa274" : "#cfcfcf";
+          return (
+            <div
+              key={a}
+              className="inline-flex items-center gap-2 px-2.5 py-1 rounded-full text-[13px]"
+              style={{ background: "rgba(245,242,239,0.8)" }}
+            >
+              <span
+                className="inline-block h-2 w-2 rounded-full"
+                style={{
+                  backgroundColor: dot,
+                  animation: isRunning ? "pulse 1.4s ease-in-out infinite" : undefined,
+                }}
+              />
+              <span style={{ color: isDone ? "#4e4e4e" : isRunning ? "#bf6e3a" : "#999" }}>
+                {AGENT_LABELS[a]}
+              </span>
+              {isRunning && runningSince?.name === a && (
+                <span className="opacity-60">{fmt(elapsedMs)}</span>
+              )}
+              {HINT[a] && (isRunning || isDone) && (
+                <span className="opacity-50">· {HINT[a]}</span>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {allDone && (
+        <div className="text-[13px]" style={{ color: "#7aa274" }}>
+          ✓ Revision applied
+        </div>
       )}
     </div>
   );
