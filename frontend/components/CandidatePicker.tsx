@@ -45,7 +45,7 @@ export function CandidatePicker({
   const [decideLater, setDecideLater] = useState(false);
   const [detailOpen, setDetailOpen] = useState<{ item: Candidate; cat: "place" | "restaurant" | "hotel" } | null>(null);
 
-  const toggle = (cat: keyof Selections, name: string) => {
+  const toggle = (cat: "places" | "restaurants" | "hotels", name: string) => {
     setPicks((prev) => {
       const set = new Set(prev[cat]);
       if (set.has(name)) set.delete(name);
@@ -93,7 +93,7 @@ export function CandidatePicker({
         />
       )}
 
-      {(["places", "restaurants", "hotels"] as (keyof Selections)[]).map((cat) => {
+      {(["places", "restaurants", "hotels"] as const).map((cat) => {
         if (cat === "arrival_choices") return null;
         const items = research[cat as "places" | "restaurants" | "hotels"];
         if (!items || items.length === 0) return null;
