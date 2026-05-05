@@ -614,9 +614,17 @@ Attractions:
   low: $0-$30    medium: $20-$80    high: $50-$200   luxury: $150-$500
 
 Airfare (round trip total, per person):
-  low/medium: $300-$1500 economy
-  high:       $2000-$8000 business
-  luxury:     $5000-$15000 first / $30000-$60000 private jet share
+  low/medium: $300-$1500     economy
+  high:       $2000-$8000    business
+  luxury:     $5000-$15000   commercial first
+  luxury:     $30000-$80000  private/chartered jet share, long-haul int'l
+                              (split among 4-6 travelers; whole aircraft
+                              ~$200-500k for 11-hour intercontinental routes)
+  luxury:     $15000-$40000  private/chartered jet share, transcontinental
+                              (5-7 hour US/Europe routes)
+If the user's arrival selections include mode=private_jet, populate airfare
+from the SUM of the chosen outbound + return prices (each is one-way per
+person) — do NOT recompute from the anchor.
 
 Pick numbers WITHIN these ranges based on the user's exact budget_level.
 Do NOT output any totals or daily/airfare strings — backend computes those.
@@ -754,6 +762,29 @@ Rules:
 - mode="private_jet" only for actual private aviation. Never "drive" for a jet.
 - Match user's budget_level: low → emphasise economy; high → mostly business;
   luxury → first + private_jet at the top.
+
+PRIVATE JET / CHARTERED PRICING (anchor to flight hours, not budget tier).
+Typical whole-aircraft charter rates per flight hour:
+  light jet (Phenom 300 / Citation CJ4, 4-7 pax)        $5,000-8,000/hr
+  mid-size (Citation X, Hawker 800, 6-9 pax)            $7,000-12,000/hr
+  long-range (Gulfstream G450/G550, 8-14 pax)           $9,000-15,000/hr
+  ultra-long-range (Gulfstream G650/G700, Global 7500)  $12,000-20,000/hr
+
+Compute the ONE-WAY price per person you output as:
+  hourly_rate × flight_hours / typical_passenger_count
+
+Sanity-check examples (one-way per person, on a long-range jet split among
+4-6 travelers — adjust for shorter routes proportionally):
+  SFO→NYC      (5 hr)   ~$8k-15k/person
+  SFO→London   (10 hr)  ~$15k-30k/person
+  SFO→Tokyo    (11 hr)  ~$17k-35k/person
+  SFO→Sydney   (15 hr)  ~$22k-45k/person
+
+Do NOT output a private jet price under $10k for any international route —
+that's a commercial first-class number. If the LLM is unsure of route hours,
+bias to the high end of the range. carrier should name the actual aircraft
+class (e.g. "Gulfstream G550 charter"), not a marketing brand.
+
 - Output JSON only, no preamble."""
 
 
