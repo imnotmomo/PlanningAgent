@@ -186,14 +186,41 @@ export default function Page() {
     setPhase("planning");
     // If the picker collected user-added candidates, merge them into research
     // so route + itinerary see them with their (Tavily-fetched) descriptions.
-    const mergedResearch = customs
-      ? {
-          ...research.research,
-          places: [...research.research.places, ...customs.places],
-          restaurants: [...research.research.restaurants, ...customs.restaurants],
-          hotels: [...research.research.hotels, ...customs.hotels],
-        }
-      : research.research;
+    // Important: also fold them into `by_city[<city>]` because the orchestrator
+    // iterates per-leg via by_city — without this the custom hotel never
+    // reaches route_agent and transit notes reference a stale research hotel.
+    let mergedResearch = research.research;
+    if (customs) {
+      const byCity = { ...(research.research.by_city || {}) };
+      const placeCustoms = customs.places;
+      const restCustoms = customs.restaurants;
+      const hotelCustoms = customs.hotels;
+      const updateLeg = (city: string, key: "places" | "restaurants" | "hotels", items: Candidate[]) => {
+        const incoming = items.filter((c) => (c.city || "") === city);
+        if (incoming.length === 0) return;
+        const cur = byCity[city] || { places: [], restaurants: [], hotels: [] };
+        byCity[city] = { ...cur, [key]: [...cur[key], ...incoming] };
+      };
+      const cities = new Set<string>([
+        ...Object.keys(byCity),
+        ...placeCustoms.map((c) => c.city || ""),
+        ...restCustoms.map((c) => c.city || ""),
+        ...hotelCustoms.map((c) => c.city || ""),
+      ]);
+      cities.forEach((city) => {
+        if (!city) return;
+        updateLeg(city, "places", placeCustoms);
+        updateLeg(city, "restaurants", restCustoms);
+        updateLeg(city, "hotels", hotelCustoms);
+      });
+      mergedResearch = {
+        ...research.research,
+        places: [...research.research.places, ...placeCustoms],
+        restaurants: [...research.research.restaurants, ...restCustoms],
+        hotels: [...research.research.hotels, ...hotelCustoms],
+        by_city: byCity,
+      };
+    }
     if (customs) {
       setResearch({ ...research, research: mergedResearch });
     }

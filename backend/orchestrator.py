@@ -323,8 +323,24 @@ async def run_build(
                         selected_for_lora.append(v)
 
     # ----- budget (whole trip) -----
+    # Pick the user-selected hotel to pass to the budget agent so it prices
+    # the ACTUAL hotel rather than a tier-generic one. Use the first leg's
+    # selected hotel if multi-leg (the dominant cost anchor).
+    selected_hotel: dict | None = None
+    hotel_picks_set = set((sel.get("hotels") or []))
+    for leg in legs:
+        leg_hotels_full = (by_city.get(leg["city"]) or {}).get("hotels", []) or []
+        for h in leg_hotels_full:
+            if h.get("name") in hotel_picks_set:
+                selected_hotel = {"name": h["name"], "city": leg["city"]}
+                break
+        if selected_hotel:
+            break
+
     yield {"event": "step", "payload": {"name": "budget", "status": "running"}}
-    budget = await agents.budget_agent(prefs, selected_for_lora, arrival=arrival_for_budget)
+    budget = await agents.budget_agent(
+        prefs, selected_for_lora, arrival=arrival_for_budget, selected_hotel=selected_hotel,
+    )
     yield {"event": "step", "payload": {"name": "budget", "status": "done", "output": budget}}
 
     # ----- itinerary per leg, concatenated with day-offset -----
@@ -780,8 +796,14 @@ async def run_revise(result: dict, change: str) -> AsyncIterator[dict]:
     yield {"event": "step", "payload": {"name": "itinerary", "status": "done"}}
 
     yield {"event": "step", "payload": {"name": "budget", "status": "running"}}
+    # Use the new tier's first hotel as the cost anchor.
+    new_selected_hotel = (
+        {"name": aggregated_hotels[0].get("name"), "city": aggregated_hotels[0].get("city")}
+        if aggregated_hotels and isinstance(aggregated_hotels[0], dict) else None
+    )
     new_budget = await agents.budget_agent(
-        new_prefs, new_place_names + new_restaurant_names, arrival=arrival
+        new_prefs, new_place_names + new_restaurant_names,
+        arrival=arrival, selected_hotel=new_selected_hotel
     )
     yield {"event": "step", "payload": {"name": "budget", "status": "done", "output": new_budget}}
 

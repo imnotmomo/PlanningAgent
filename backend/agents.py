@@ -562,9 +562,21 @@ BUDGET_SYSTEM = """You estimate trip costs in PER-PERSON, PER-DAY buckets.
 The backend will sum them — DO NOT compute totals yourself.
 
 Process:
-1. Call `tavily_search` ONCE — for high/luxury, search a real luxury hotel
-   nightly rate at the destination (e.g. "Aman <destination> price per night").
-2. Fill in bucket numbers grounded in that search.
+1. Call `tavily_search` ONCE.
+   - If the input includes `selected_hotel.name`, search for THAT specific
+     hotel's nightly rate (e.g. "Park Hyatt Kyoto price per night USD").
+     Override the budget_level anchor with what you find: a Park Hyatt
+     priced at $700/night should produce hotel.high_per_day ≈ 350-400 even
+     if budget_level is "medium".
+   - Otherwise search a tier-typical hotel for the destination (e.g.
+     "Aman <destination> price per night" for luxury, "boutique hotel
+     <destination> $150 per night" for medium).
+2. Fill in bucket numbers grounded in what you actually saw.
+   - hotel: derive from the search above (per person — divide a double room
+     by 2 if the trip has 2 travelers).
+   - local_transit: if the route_agent leans heavily on Uber/taxi, bias
+     toward the higher end of the anchor (5-7 rides/day × ~$15-25 = $75-175).
+   - meals/attractions: standard tier anchor.
 3. If the input includes `arrival`, populate the airfare bucket using ONE of
    its options matching budget_level. Else airfare = 0.
 
@@ -670,11 +682,20 @@ def _compute_budget_totals(obj: dict, prefs: dict, arrival: dict | None) -> dict
     }
 
 
-async def budget_agent(prefs: dict, places: list[str], arrival: dict | None = None) -> dict:
+async def budget_agent(
+    prefs: dict,
+    places: list[str],
+    arrival: dict | None = None,
+    selected_hotel: dict | None = None,
+) -> dict:
+    """`selected_hotel = {name, city}` lets the agent price the actual hotel
+    the user picked rather than the budget_level anchor. Crucial when the
+    user picks a luxury hotel under a medium budget tier."""
     payload = json.dumps({
         "prefs": prefs,
         "places": places,
         "arrival": arrival or None,
+        "selected_hotel": selected_hotel or None,
     })
     raw = await orch_complete_with_tools(
         BUDGET_SYSTEM,
