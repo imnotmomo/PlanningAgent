@@ -112,6 +112,50 @@ cp .env.example .env.local                # leave NEXT_PUBLIC_API_URL unset for 
 npm install && npm run dev                # http://localhost:3000
 ```
 
+## Run
+
+Two terminals from the repo root:
+
+```bash
+# terminal 1 — backend
+. .venv/bin/activate
+uvicorn backend.server:app --port 8000
+
+# terminal 2 — frontend
+cd frontend && npm run dev
+```
+
+Open `http://localhost:3000`. The first plan request takes 60–120 s (mostly LoRA generation); subsequent ones stream incrementally over SSE.
+
+To restart after a crash, just Ctrl-C both processes — no state is held server-side, and the browser auto-resumes the last in-progress plan via localStorage (UUID + 7-day TTL). To bypass the pickers and stream a full plan in one shot, hit `/plan` directly:
+
+```bash
+curl -N -X POST http://localhost:8000/plan \
+  -H 'Content-Type: application/json' \
+  -H 'Accept: text/event-stream' \
+  -d '{"request": "3 days in Tokyo for 2, food + culture, medium budget"}'
+```
+
+## Example usage
+
+A full end-to-end run as it appears in the UI:
+
+**1. Free-form request** — type in the trip form:
+
+> *"5 days in Japan from SFO, anime + food + city views, medium budget, for 2 friends"*
+
+**2. Preference + suggester phase** (≈ 1 s). The preference agent extracts `{origin: "SFO", country_or_region: "Japan", trip_length_days: 5, budget_level: "medium", interests: ["anime", "food", "city views"], travelers: "2 friends"}`. Because no city was specified, the destination suggester proposes four candidates (Tokyo, Kyoto, Osaka, Fukuoka) with recommended day splits, plus a default split (Tokyo 5d). The picker UI activates.
+
+**3. Picker — destinations** — user picks `Tokyo (3d) → Kyoto (2d)`. Pick order is meaningful: first city is the outbound flight destination, last city is the return-flight origin.
+
+**4. Research phase** (≈ 3-5 s). The arrival agent returns outbound and return flight options at the medium tier; the research agent runs in parallel for both cities via `asyncio.gather`, returning places, restaurants, and hotels for each. The candidate picker activates with three sections per city.
+
+**5. Picker — candidates + flights** — user picks specific places, restaurants, hotels, outbound, and return flights. Empty `+ Add your own X` cards let them inject a custom item (e.g., *"Nakamura Tokichi"* as a Kyoto restaurant); each fires a focused Tavily lookup via `/enrich-candidates` to fetch a description before `/build` runs.
+
+**6. Build phase** (≈ 60-90 s, dominated by LoRA inference). Route → budget → itinerary (LoRA) → tips → critic run in sequence. If `critic.score < 7`, the loop replays route → itinerary → tips → critic with the critic's feedback fed back to the route agent, up to 2 more retries. The final plan renders as day cards with a hotel badge, time-anchored schedule, lunch + dinner, transit notes, and an all-in budget.
+
+**7. Revise** — typing *"keep each day under $100"* into the revision form triggers the **budget** path: `research` re-runs at the inferred new (low) tier so the actual hotels and restaurants change, then route + itinerary + budget + critic rebuild on top of the new candidate pool. Total ≈ 50-90 s. A live progress panel shows each agent firing.
+
 ## Pipeline
 
 Three SSE-streamed phases plus a streaming revision endpoint.
